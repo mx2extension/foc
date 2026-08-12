@@ -30,7 +30,7 @@ function extractCriteria(query: string) {
 
   // Fallback: if no specific service is matched, use the whole query minus the location
   let generalSearch = lowerQuery
-  if (location) generalSearch = generalQuery.replace(location, '').trim()
+  if (location) generalSearch = generalSearch.replace(location, '').trim()
   generalSearch = generalSearch.replace(/i need a |i need an |looking for /g, '').trim()
 
   return { location, service, generalSearch }

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 
 export default function ManageNews() {
-  const [articles, setArticles] = useState([])
+  const [articles, setArticles] = useState<any[]>([])
   const [form, setForm] = useState({ title: '', excerpt: '', content: '', image_url: '', author: 'FindOneCampus' })
   const [editingId, setEditingId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)

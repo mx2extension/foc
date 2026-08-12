@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 
 export default function ManageProviders() {
-  const [providers, setProviders] = useState([])
+  const [providers, setProviders] = useState<any[]>([])
   const [filter, setFilter] = useState('pending')
 
   useEffect(() => {

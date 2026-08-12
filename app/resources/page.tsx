@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase/client'
 import ResourceCard from '@/components/ResourceCard'
 
 export default function ResourcesPage() {
-  const [resources, setResources] = useState([])
+  const [resources, setResources] = useState<any[]>([])
   const [filter, setFilter] = useState('all')
 
   useEffect(() => {

@@ -2,8 +2,14 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 
+type Subscriber = {
+  id: number
+  email: string
+  created_at: string
+}
+
 export default function ManageNewsletter() {
-  const [subscribers, setSubscribers] = useState([])
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([])
 
   useEffect(() => {
     const fetchSubscribers = async () => {

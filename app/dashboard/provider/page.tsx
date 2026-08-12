@@ -9,7 +9,7 @@ export default function ProviderDashboard() {
   const [provider, setProvider] = useState<any>(null)
   const [form, setForm] = useState<any>({})
   const [upgrading, setUpgrading] = useState(false)
-  const [proBooks, setProBooks] = useState([])
+  const [proBooks, setProBooks] = useState<any[]>([])
   const [activeBook, setActiveBook] = useState<any>(null)
   const [selectedPlan, setSelectedPlan] = useState<{months: number, price: number}>({ months: 1, price: 7000 })
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)

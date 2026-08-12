@@ -1,5 +1,5 @@
 import { Inter, Instrument_Serif } from 'next/font/google'
-// @ts-ignore: side-effect import for global CSS
+// @ts-ignore: allow global CSS import in layout
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
@@ -8,7 +8,7 @@ import ScrollReveal from '@/components/ScrollReveal'
 import PageHeroNav from '@/components/PageHeroNav'
 import SocialGrowthPanel from '@/components/SocialGrowthPanel'
 import AgentChat from '@/components/AgentChat' 
-import FallbackPaymentModal from '@/components/FallbackPaymentModal' // <-- Added Fallback Modal Import
+import FallbackPaymentModal from '@/components/FallbackPaymentModal'
 import Script from 'next/script'
 
 const inter = Inter({ 
@@ -23,32 +23,22 @@ const instrumentSerif = Instrument_Serif({
   variable: '--font-instrument-serif',
   weight: ['400'],
   style: ['normal', 'italic'],
-  display: 'swap'
+  display: 'swap',
+  adjustFontFallback: false // Fixed font override error
 })
 
 export const metadata = {
   title: 'FindOneCampus — The World Is One Big Campus',
   description: 'The world is one giant campus where everyone is learning, building, creating, hiring, serving, teaching and growing.',
   metadataBase: new URL('https://findoncampus.com'),
-  alternates: {
-    canonical: '/',
-  },
-  icons: {
-    icon: '/favicon.png',
-  },
+  alternates: { canonical: '/' },
+  icons: { icon: '/favicon.png' },
   openGraph: {
     title: 'FindOneCampus — The World Is One Big Campus',
     description: 'The world is one giant campus where everyone is learning, building, creating, hiring, serving, teaching and growing.',
     url: 'https://findoncampus.com',
     siteName: 'FindOneCampus',
-    images: [
-      {
-        url: '/favicon.png',
-        width: 1200,
-        height: 630,
-        alt: 'FindOneCampus',
-      },
-    ],
+    images: [{ url: '/favicon.png', width: 1200, height: 630, alt: 'FindOneCampus' }],
     locale: 'en_US',
     type: 'website',
   },
@@ -61,9 +51,7 @@ export const metadata = {
 }
 
 declare global {
-  interface Window {
-    PaystackPop: any
-  }
+  interface Window { PaystackPop: any }
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -76,33 +64,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
       </head>
       <body className="font-sans">
-        {/* Paystack Inline Script */}
-        <Script
-          src="https://js.paystack.co/v1/inline.js"
-          strategy="beforeInteractive"
-        />
-        
+        <Script src="https://js.paystack.co/v1/inline.js" strategy="beforeInteractive" />
         <Loader />
         <ScrollReveal />
-        
-        {/* Navbar hidden on desktop via lg:hidden */}
         <div className="lg:hidden">
           <Navbar />
         </div>
-        
         <main className="lg:pt-0 pt-4">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <PageHeroNav />
           </div>
           {children}
         </main>
-        
         <Footer />
-        
-        {/* Global Floating Components */}
         <SocialGrowthPanel />
         <AgentChat />
-        <FallbackPaymentModal /> {/* <-- Added Fallback Modal Here */}
+        <FallbackPaymentModal />
       </body>
     </html>
   )

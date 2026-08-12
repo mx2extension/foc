@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 
 export default function ManageProBooks() {
-  const [books, setBooks] = useState([])
+  const [books, setBooks] = useState<any[]>([])
   const [form, setForm] = useState({ 
     title: '', 
     description: '', 

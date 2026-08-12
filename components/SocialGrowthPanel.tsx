@@ -7,7 +7,7 @@ const VIEWS_MARKUP = 30
 
 export default function SocialGrowthPanel() {
   const [isOpen, setIsOpen] = useState(false)
-  const [services, setServices] = useState([])
+  const [services, setServices] = useState<any[]>([])
   const [balance, setBalance] = useState(0)
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState('')

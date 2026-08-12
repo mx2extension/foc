@@ -2,8 +2,14 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 
+type Book = {
+  id: string
+  title: string
+  download_url: string
+}
+
 export default function ManageDownloads() {
-  const [books, setBooks] = useState([])
+  const [books, setBooks] = useState<Book[]>([])
 
   useEffect(() => {
     const fetchBooks = async () => {

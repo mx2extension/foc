@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 
 export default function ViewPayments() {
-  const [payments, setPayments] = useState([])
+  const [payments, setPayments] = useState<any[]>([])
 
   useEffect(() => {
     const fetchPayments = async () => {

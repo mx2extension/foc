@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 
 export default function ManageBooks() {
-  const [books, setBooks] = useState([])
+  const [books, setBooks] = useState<any[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isPaid, setIsPaid] = useState(true)
   const [bookFile, setBookFile] = useState<File | null>(null)
@@ -14,6 +14,7 @@ export default function ManageBooks() {
     description: '', 
     about: '', 
     price: 0, 
+    download_url: '', 
     image_url: '', 
     bg: 'linear-gradient(135deg, #1A1A1A, #C1121F)' 
   })
@@ -35,6 +36,7 @@ export default function ManageBooks() {
       description: book.description,
       about: book.about || '',
       price: book.price,
+      download_url: book.download_url || '',
       image_url: book.cover_config?.image_url || '',
       bg: book.cover_config?.bg || 'linear-gradient(135deg, #1A1A1A, #C1121F)'
     })
@@ -46,7 +48,7 @@ export default function ManageBooks() {
     setIsPaid(true)
     setBookFile(null)
     setForm({ 
-      title: '', author: '', description: '', about: '', price: 0, 
+      title: '', author: '', description: '', about: '', price: 0, download_url: '', 
       image_url: '', bg: 'linear-gradient(135deg, #1A1A1A, #C1121F)' 
     })
   }

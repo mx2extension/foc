@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 
 export default function ManageResources() {
-  const [resources, setResources] = useState([])
+  const [resources, setResources] = useState<any[]>([])
   const [isPaid, setIsPaid] = useState(false)
   const [form, setForm] = useState({ 
     type: 'book', 

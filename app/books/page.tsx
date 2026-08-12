@@ -6,7 +6,7 @@ import Link from 'next/link'
 
 export default function BooksPage() {
   const [reader, setReader] = useState<any>(null)
-  const [books, setBooks] = useState([])
+  const [books, setBooks] = useState<any[]>([]) // Fixed never[] error
   const [ownedBookIds, setOwnedBookIds] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState<string | null>(null)
@@ -37,28 +37,17 @@ export default function BooksPage() {
   }, [reader])
 
   const showToast = (message: string) => { setToast(message); setTimeout(() => setToast(null), 4000) }
-
-  const handleLogout = () => {
-    localStorage.removeItem('foc_reader')
-    setReader(null); setOwnedBookIds([]); setBooks([]); setActiveTab('all')
-  }
+  const handleLogout = () => { localStorage.removeItem('foc_reader'); setReader(null); setOwnedBookIds([]); setBooks([]); setActiveTab('all') }
 
   const handleBuyBook = async (book: any) => {
     const paystackKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY
-    
-    // FALLBACK: If Paystack is missing, open manual bank transfer modal
     if (!paystackKey || !(window as any).PaystackPop) {
-      window.dispatchEvent(new CustomEvent('show-fallback-payment', { 
-        detail: { amount: book.price.toLocaleString(), description: `${book.title} (Book)` }
-      }))
+      window.dispatchEvent(new CustomEvent('show-fallback-payment', { detail: { amount: book.price.toLocaleString(), description: `${book.title} (Book)` }}))
       return
     }
-
     const reference = generateReference('BOOK')
     const buyerEmail = reader?.email.toLowerCase()
-
     await supabase.from('payments').insert({ amount: book.price, status: 'pending', reference, item_type: 'book', item_id: book.id, email: buyerEmail })
-
     try {
       const handler = (window as any).PaystackPop.setup({
         key: paystackKey, email: buyerEmail, amount: book.price * 100, ref: reference,
@@ -102,7 +91,6 @@ export default function BooksPage() {
           </div>
         </div>
       )}
-
       <div className="max-w-7xl mx-auto px-6 lg:px-10 py-32">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
           <div>
@@ -112,12 +100,10 @@ export default function BooksPage() {
           </div>
           <button onClick={handleLogout} className="btn-secondary !py-2.5 !px-5 text-sm">Log Out</button>
         </div>
-
         <div className="flex gap-2 mb-10 border-b border-black/5 pb-4">
           <button onClick={() => setActiveTab('all')} className={`px-5 py-2.5 rounded-full text-sm font-medium transition ${activeTab === 'all' ? 'bg-ink text-white' : 'text-muted hover:text-ink'}`}>All Books</button>
           <button onClick={() => setActiveTab('mine')} className={`px-5 py-2.5 rounded-full text-sm font-medium transition ${activeTab === 'mine' ? 'bg-ink text-white' : 'text-muted hover:text-ink'}`}>My Books ({ownedBookIds.length})</button>
         </div>
-
         {loading ? (
           <div className="text-center py-20 text-muted">Loading your library...</div>
         ) : (
@@ -127,10 +113,7 @@ export default function BooksPage() {
               const isFree = book.price === 0
               return (
                 <div key={book.id} className="premium-card p-6 flex flex-col">
-                  <div 
-                    className="aspect-[3/4] rounded-lg mb-6 relative overflow-hidden shadow-xl flex flex-col justify-between p-6 text-white"
-                    style={book.cover_config?.image_url ? { backgroundImage: `url(${book.cover_config.image_url})`, backgroundSize: 'cover', backgroundPosition: 'center' } : { background: book.cover_config?.bg || 'linear-gradient(135deg, #1A1A1A, #C1121F)' }}
-                  >
+                  <div className="aspect-[3/4] rounded-lg mb-6 relative overflow-hidden shadow-xl flex flex-col justify-between p-6 text-white" style={book.cover_config?.image_url ? { backgroundImage: `url(${book.cover_config.image_url})`, backgroundSize: 'cover', backgroundPosition: 'center' } : { background: book.cover_config?.bg || 'linear-gradient(135deg, #1A1A1A, #C1121F)' }}>
                     {!book.cover_config?.image_url && (
                       <>
                         <div className="text-[10px] tracking-[0.3em] opacity-70">{book.cover_config?.label || 'FOC PRESS'}</div>
@@ -142,35 +125,24 @@ export default function BooksPage() {
                       </>
                     )}
                   </div>
-
                   <p className="text-sm text-muted leading-relaxed mb-5 flex-1">{book.description}</p>
-                  
                   <div className="mt-auto space-y-2">
                     {isOwned || isFree ? (
-                      <Link href={`/books/${book.id}`} className="btn-primary w-full justify-center !py-3 text-sm">
-                        <i className="fas fa-book-open"></i> Read / Download
-                      </Link>
+                      <Link href={`/books/${book.id}`} className="btn-primary w-full justify-center !py-3 text-sm"><i className="fas fa-book-open"></i> Read / Download</Link>
                     ) : (
                       <div className="flex gap-2">
-                        <button onClick={() => handleBuyBook(book)} className="flex-1 btn-primary justify-center !py-3 text-sm">
-                          <i className="fas fa-cart-shopping text-xs"></i> Buy ₦{book.price.toLocaleString()}
-                        </button>
-                        <Link href={`/books/${book.id}`} className="flex-1 btn-secondary justify-center !py-3 text-sm !bg-paper">
-                          <i className="fas fa-info-circle text-xs"></i> About
-                        </Link>
+                        <button onClick={() => handleBuyBook(book)} className="flex-1 btn-primary justify-center !py-3 text-sm"><i className="fas fa-cart-shopping text-xs"></i> Buy ₦{book.price.toLocaleString()}</button>
+                        <Link href={`/books/${book.id}`} className="flex-1 btn-secondary justify-center !py-3 text-sm !bg-paper"><i className="fas fa-info-circle text-xs"></i> About</Link>
                       </div>
                     )}
                   </div>
                 </div>
               )
             })}
-            {displayedBooks.length === 0 && (
-              <div className="col-span-full text-center py-20 text-muted">No books available.</div>
-            )}
+            {displayedBooks.length === 0 && (<div className="col-span-full text-center py-20 text-muted">No books available.</div>)}
           </div>
         )}
       </div>
-
       <style>{`@keyframes slideUp { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }`}</style>
     </div>
   )

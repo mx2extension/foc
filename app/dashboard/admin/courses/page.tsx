@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 
 export default function ManageCourses() {
-  const [courses, setCourses] = useState([])
+  const [courses, setCourses] = useState<any[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState({ 
     title: '', instructor: '', description: '', about: '', video_url: '', 
