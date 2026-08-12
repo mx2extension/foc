@@ -3,7 +3,6 @@ import { Inter, Instrument_Serif } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
-import Loader from '@/components/Loader'
 import ScrollReveal from '@/components/ScrollReveal'
 import PageHeroNav from '@/components/PageHeroNav'
 import SocialGrowthPanel from '@/components/SocialGrowthPanel'
@@ -24,7 +23,7 @@ const instrumentSerif = Instrument_Serif({
   weight: ['400'],
   style: ['normal', 'italic'],
   display: 'swap',
-  adjustFontFallback: false // Fixed font override error
+  adjustFontFallback: false
 })
 
 export const metadata = {
@@ -65,7 +64,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="font-sans">
         <Script src="https://js.paystack.co/v1/inline.js" strategy="beforeInteractive" />
-        <Loader />
         <ScrollReveal />
         <div className="lg:hidden">
           <Navbar />

@@ -22,6 +22,7 @@ export default function Navbar() {
 
         {/* Desktop Navigation Links */}
         <div className="hidden lg:flex items-center gap-8 text-sm font-medium text-ink/80">
+          <Link href="/" className="hover:text-primary transition">Home</Link>
           <Link href="/providers" className="hover:text-primary transition">Providers</Link>
           <Link href="/books" className="hover:text-primary transition">Books</Link>
           <Link href="/courses" className="hover:text-primary transition">Courses</Link>
@@ -53,6 +54,7 @@ export default function Navbar() {
       {/* Mobile Menu Dropdown (Includes the buttons here for mobile users) */}
       {mobileOpen && (
         <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-b border-black/5 px-6 py-6 flex flex-col gap-4 text-lg serif shadow-xl">
+          <Link href="/" onClick={() => setMobileOpen(false)} className="hover:text-primary">Home</Link>
           <Link href="/providers" onClick={() => setMobileOpen(false)} className="hover:text-primary">Providers</Link>
           <Link href="/books" onClick={() => setMobileOpen(false)} className="hover:text-primary">Books</Link>
           <Link href="/courses" onClick={() => setMobileOpen(false)} className="hover:text-primary">Courses</Link>

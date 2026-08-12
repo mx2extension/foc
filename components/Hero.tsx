@@ -8,7 +8,7 @@ export default function Hero() {
   // Typing animation states
   const [count, setCount] = useState(0)
   const part1 = "The World Is"
-  const part2 = "ne Big" // The 'O' is replaced by the globe icon
+  const part2 = "ne Big" // The 'O' is replaced by the globe graphic below
   const part3 = " Campus."
   const totalLength = part1.length + part2.length + part3.length
 
@@ -186,7 +186,7 @@ export default function Hero() {
             </span>
           </div>
 
-          {/* TYPING ANIMATION HEADLINE WITH GLOBE */}
+          {/* TYPING ANIMATION HEADLINE WITH RELIABLE SVG GLOBE */}
           <h1 className="serif reveal visible pointer-events-auto" style={{ fontSize: 'clamp(48px, 10vw, 132px)', lineHeight: 0.95, letterSpacing: '-0.02em' }}>
             {count <= part1.length ? (
               part1.slice(0, count)
@@ -194,8 +194,21 @@ export default function Hero() {
               <>
                 {part1}<br />
                 <span className="serif-italic gradient-text inline-flex items-center" style={{ paddingBottom: '0.1em' }}>
-                  {/* Spinning Globe Icon replacing the 'O' */}
-                  <i className="fas fa-earth-americas inline-block text-primary animate-spin mr-2" style={{ animationDuration: '8s', fontSize: '0.9em' }}></i>
+                  {/* Inline SVG Globe replacing the FontAwesome icon for Android compatibility */}
+                  <svg 
+                    className="inline-block text-primary animate-spin mr-2 shrink-0" 
+                    style={{ animationDuration: '8s', width: '0.8em', height: '0.8em' }} 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                  </svg>
                   {count <= part1.length + part2.length ? (
                     part2.slice(0, count - part1.length)
                   ) : (
@@ -241,7 +254,7 @@ export default function Hero() {
                 <span>Browse Books</span>
               </Link>
 
-              {/* NEW BUZZING SMM BUTTON */}
+              {/* SMM BUTTON */}
               <button 
                 onClick={() => window.dispatchEvent(new Event('toggle-smm-panel'))}
                 className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm text-white bg-gradient-to-r from-accent to-primary shadow-lg transition-all duration-300 hover:-translate-y-0.5 animate-glow-pulse"
