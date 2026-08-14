@@ -6,9 +6,10 @@ import { useParams } from 'next/navigation'
 
 export default function ArticlePage() {
   const params = useParams()
-  const articleId = params?.id as string // Fixed null error
+  const articleId = params?.id as string
   
   const [article, setArticle] = useState<any>(null)
+  const [toast, setToast] = useState<string | null>(null)
 
   useEffect(() => {
     if (!articleId) return
@@ -20,6 +21,9 @@ export default function ArticlePage() {
   }, [articleId])
 
   if (!article) return <div className="py-32 text-center text-muted">Loading article...</div>
+
+  const shareUrl = typeof window !== 'undefined' ? window.location.href : ''
+  const shareText = `Check out "${article.title}" on FindOneCampus!`
 
   return (
     <div className="py-32 relative">
@@ -43,7 +47,25 @@ export default function ArticlePage() {
         <div className="prose prose-lg max-w-none text-lg text-ink/80 leading-relaxed space-y-6">
           {article.content.split('\n\n').map((p: string, i: number) => <p key={i}>{p}</p>)}
         </div>
+
+        {/* Share Buttons */}
+        <div className="border-t border-black/5 pt-8 mt-12">
+          <h3 className="text-sm font-semibold text-ink/80 mb-4">Share this article</h3>
+          <div className="flex items-center gap-3">
+            <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full border border-black/10 flex items-center justify-center hover:bg-ink hover:text-white transition"><i className="fab fa-twitter"></i></a>
+            <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full border border-black/10 flex items-center justify-center hover:bg-ink hover:text-white transition"><i className="fab fa-facebook-f"></i></a>
+            <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full border border-black/10 flex items-center justify-center hover:bg-ink hover:text-white transition"><i className="fab fa-linkedin-in"></i></a>
+            <a href={`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full border border-black/10 flex items-center justify-center hover:bg-[#25D366] hover:text-white transition"><i className="fab fa-whatsapp"></i></a>
+            <button onClick={() => { navigator.clipboard.writeText(shareUrl); setToast('Link copied!'); setTimeout(() => setToast(null), 3000) }} className="w-10 h-10 rounded-full border border-black/10 flex items-center justify-center hover:bg-ink hover:text-white transition"><i className="fas fa-link"></i></button>
+          </div>
+        </div>
       </article>
+      {toast && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] animate-[slideUp_0.3s_ease]">
+          <div className="flex items-center gap-3 px-6 py-4 rounded-full shadow-2xl text-white text-sm font-medium bg-green-600"><i className="fas fa-check-circle text-lg"></i><span>{toast}</span></div>
+        </div>
+      )}
+      <style>{`@keyframes slideUp { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }`}</style>
     </div>
   )
 }

@@ -16,7 +16,7 @@ interface Provider {
 export default function AgentChat() {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<{ text: string; sender: 'user' | 'agent'; providers?: Provider[] }[]>([
-    { text: "Hi! I'm the FindOneCampus Agent. Tell me what you need. (e.g., 'I need a graphic designer in Abuja')", sender: 'agent' }
+    { text: "Hi! I'm the FindOneCampus Agent. Tell me what you need. (e.g., 'I need a graphic designer in Abuja' or 'How do I buy a book?')", sender: 'agent' }
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -37,6 +37,9 @@ export default function AgentChat() {
     setInput('')
     setLoading(true)
 
+    // Artificial delay to simulate "thinking"
+    await new Promise(r => setTimeout(r, 800))
+
     try {
       const res = await fetch('/api/agent', {
         method: 'POST',
@@ -45,7 +48,9 @@ export default function AgentChat() {
       })
       const data = await res.json()
 
-      if (data.providers && data.providers.length > 0) {
+      if (data.answer) {
+        setMessages(prev => [...prev, { text: data.answer, sender: 'agent' }])
+      } else if (data.providers && data.providers.length > 0) {
         setMessages(prev => [...prev, { 
           text: `I found ${data.count} provider(s) matching your request. Here are the top results:`, 
           sender: 'agent', 
@@ -53,7 +58,7 @@ export default function AgentChat() {
         }])
       } else {
         setMessages(prev => [...prev, { 
-          text: "I couldn't find a verified provider matching all of those requirements right now. Try searching for a different service or location.", 
+          text: "I couldn't find a specific answer or a provider for that. Try asking 'What is FindOneCampus?' or 'I need a graphic designer in Abuja'.", 
           sender: 'agent' 
         }])
       }
@@ -66,6 +71,17 @@ export default function AgentChat() {
 
   return (
     <>
+      <style>{`
+        .agent-html a {
+          color: #C1121F;
+          text-decoration: underline;
+          font-weight: 500;
+        }
+        .agent-html a:hover {
+          opacity: 0.8;
+        }
+      `}</style>
+
       {/* Floating Button with Full Logo Fill & Gold Border */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
@@ -79,30 +95,46 @@ export default function AgentChat() {
         />
       </button>
 
-      {/* Reduced Size Chat Modal */}
+      {/* Chat Modal */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-[100] w-[calc(100vw-3rem)] sm:w-80 h-[420px] bg-white rounded-2xl shadow-2xl border border-black/10 flex flex-col overflow-hidden">
-          {/* Header */}
-          <div className="bg-ink text-white p-3 flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center overflow-hidden border border-amber-400">
-              <img 
-                src="https://res.cloudinary.com/drnrbfltr/image/upload/v1786366443/84e84f1e-a42c-4792-8548-4d53fffb6708.png" 
-                alt="FindOneCampus Bot" 
-                className="w-full h-full object-cover" 
-              />
+        <div className="fixed bottom-24 right-6 z-[100] w-[calc(100vw-3rem)] sm:w-80 h-[440px] bg-white rounded-2xl shadow-2xl border border-black/10 flex flex-col overflow-hidden">
+          {/* Header with Close Button */}
+          <div className="bg-ink text-white p-3 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center overflow-hidden border border-amber-400">
+                <img 
+                  src="https://res.cloudinary.com/drnrbfltr/image/upload/v1786366443/84e84f1e-a42c-4792-8548-4d53fffb6708.png" 
+                  alt="FindOneCampus Bot" 
+                  className="w-full h-full object-cover" 
+                />
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm leading-none">FindOneCampus Agent</h3>
+                <p className="text-[10px] text-white/70 mt-0.5">Discovery & Matching System</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-semibold text-sm leading-none">FindOneCampus Agent</h3>
-              <p className="text-[10px] text-white/70 mt-0.5">Discovery & Matching System</p>
-            </div>
+            <button 
+              onClick={() => setIsOpen(false)} 
+              className="text-white/70 hover:text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition"
+              aria-label="Close chat"
+            >
+              <i className="fas fa-times text-sm"></i>
+            </button>
           </div>
 
           {/* Messages Area */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-3 bg-paper">
             {messages.map((msg, index) => (
               <div key={index} className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
-                <div className={`max-w-[85%] px-3.5 py-2.5 rounded-xl text-xs ${msg.sender === 'user' ? 'bg-primary text-white rounded-br-sm' : 'bg-white border border-black/5 text-ink rounded-bl-sm shadow-sm'}`}>
-                  {msg.text}
+                <div 
+                  className={`max-w-[85%] px-3.5 py-2.5 rounded-xl text-xs leading-relaxed ${msg.sender === 'user' ? 'bg-primary text-white rounded-br-sm' : 'bg-white border border-black/5 text-ink rounded-bl-sm shadow-sm'}`}
+                >
+                  {/* Render HTML for agent messages to make links clickable */}
+                  {msg.sender === 'agent' && msg.text.includes('<') ? (
+                    <div className="agent-html" dangerouslySetInnerHTML={{ __html: msg.text }} />
+                  ) : (
+                    msg.text
+                  )}
                 </div>
                 
                 {/* Render Provider Cards if available */}
@@ -133,7 +165,7 @@ export default function AgentChat() {
                           View Profile
                         </Link>
                         <a 
-                          href={`https://wa.me/${provider.whatsapp.replace(/[^0-9]/g, '')}`} 
+                          href={`https://wa.me/${provider.whatsapp.replace(/[^0-9]/g, '')}?text=Hello%20${provider.full_name},%20I%20found%20you%20on%20FindOneCampus%20and%20I%27m%20interested%20in%20your%20services.`} 
                           target="_blank" 
                           rel="noopener noreferrer" 
                           className="flex-1 text-[11px] text-center py-1.5 rounded-full bg-[#25D366] text-white hover:opacity-90 transition font-medium"
@@ -147,10 +179,13 @@ export default function AgentChat() {
               </div>
             ))}
             
+            {/* Smart Loading Indicator */}
             {loading && (
               <div className="flex items-start">
-                <div className="px-3 py-2 rounded-xl rounded-bl-sm bg-white border border-black/5 shadow-sm">
-                  <i className="fas fa-circle-notch fa-spin text-muted text-xs"></i>
+                <div className="px-3.5 py-2.5 rounded-xl rounded-bl-sm bg-white border border-black/5 shadow-sm flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 bg-muted rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                  <span className="w-1.5 h-1.5 bg-muted rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                  <span className="w-1.5 h-1.5 bg-muted rounded-full animate-bounce"></span>
                 </div>
               </div>
             )}

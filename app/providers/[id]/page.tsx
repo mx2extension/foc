@@ -14,7 +14,10 @@ export default async function ProviderProfile({ params }: { params: { id: string
   if (!provider) return notFound()
 
   const avatar = getProfessionAvatar(provider.profession, provider.full_name)
-  const waLink = `https://wa.me/${provider.whatsapp.replace(/[^0-9]/g, '')}`
+  
+  // Pre-formatted WhatsApp message
+  const waMsg = encodeURIComponent(`Hello ${provider.full_name}, I found you on FindOneCampus (www.findoncampus.com) and I'm interested in your services.`)
+  const waLink = `https://wa.me/${provider.whatsapp.replace(/[^0-9]/g, '')}?text=${waMsg}`
 
   return (
     <div className="max-w-5xl mx-auto px-6 lg:px-10 py-32">
@@ -46,7 +49,12 @@ export default async function ProviderProfile({ params }: { params: { id: string
               <i className="fab fa-whatsapp"></i> Contact via WhatsApp
             </a>
 
-            {/* Social Links */}
+            {/* Mediation Note for Clients */}
+            <div className="bg-paper p-4 rounded-xl border border-black/5 mt-6">
+              <h4 className="text-xs font-semibold text-ink mb-1">Need Assistance?</h4>
+              <p className="text-[11px] text-muted leading-relaxed">If you have complaints, need mediation, or require assistance with this provider, FindOneCampus is here to stand in the middle. WhatsApp us: +234 814 919 3063.</p>
+            </div>
+
             <div className="mt-8 space-y-3">
               {provider.social_links?.linkedin && (
                 <a href={provider.social_links.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm hover:text-primary transition">
@@ -77,6 +85,25 @@ export default async function ProviderProfile({ params }: { params: { id: string
             <h2 className="text-xl font-semibold mb-4">About</h2>
             <p className="text-muted leading-relaxed whitespace-pre-line">{provider.bio}</p>
           </div>
+
+          {/* Long Description (Pro Only) */}
+          {provider.membership === 'pro' && provider.long_description && (
+            <div className="premium-card p-8 mb-8">
+              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">Detailed Experience <i className="fas fa-crown text-accent text-sm"></i></h2>
+              <p className="text-muted leading-relaxed whitespace-pre-line">{provider.long_description}</p>
+            </div>
+          )}
+
+          {/* Education Details */}
+          {(provider.education_level || provider.school) && (
+            <div className="premium-card p-8 mb-8">
+              <h2 className="text-xl font-semibold mb-4">Education</h2>
+              <div className="space-y-2 text-sm">
+                {provider.education_level && <p><span className="text-muted">Degree:</span> <span className="font-medium">{provider.education_level}</span></p>}
+                {provider.school && <p><span className="text-muted">Institution:</span> <span className="font-medium">{provider.school}</span></p>}
+              </div>
+            </div>
+          )}
 
           <div className="premium-card p-8">
             <h2 className="text-xl font-semibold mb-4">Skills</h2>

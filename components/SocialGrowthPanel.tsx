@@ -15,6 +15,7 @@ export default function SocialGrowthPanel() {
 
   // Form state
   const [email, setEmail] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('')
   const [serviceId, setServiceId] = useState('')
   const [link, setLink] = useState('')
   const [quantity, setQuantity] = useState(500)
@@ -57,10 +58,27 @@ export default function SocialGrowthPanel() {
     setLoading(false)
   }
 
+  // Extract unique categories for the dropdown
+  const categories = Array.from(new Set(services.map((s: any) => s.category).filter(Boolean)))
+
+  // Filter services based on selected category
+  const filteredServices = selectedCategory 
+    ? services.filter((s: any) => s.category === selectedCategory) 
+    : services
+
   const selectedService = services.find((s: any) => String(s.service) === String(serviceId))
 
   const getMarkup = (serviceName: string) => {
     return serviceName.toLowerCase().includes('view') ? VIEWS_MARKUP : REGULAR_MARKUP
+  }
+
+  // Helper to ask for Post URL or Profile URL depending on the service
+  const getLinkPlaceholder = (serviceName: string = '') => {
+    const lower = serviceName.toLowerCase()
+    if (lower.includes('view') || lower.includes('like') || lower.includes('comment') || lower.includes('share') || lower.includes('retweet') || lower.includes('impression')) {
+      return "Enter Post URL (e.g., /p/CxYz...)"
+    }
+    return "Enter Profile URL (e.g., /username)"
   }
 
   const calculateTotal = () => {
@@ -72,6 +90,20 @@ export default function SocialGrowthPanel() {
   }
 
   const totalCost = calculateTotal()
+
+  const triggerFallback = () => {
+    // Pre-format the WhatsApp message with all exact order details
+    const rawMsg = `Hello MX2ViralWorld, I just paid for my order.\n\nService: ${selectedService?.name}\nLink: ${link}\nQuantity: ${quantity}\nTotal Paid: ₦${totalCost.toLocaleString()}\n\nAttached is the payment screenshot.`
+    const waMsg = encodeURIComponent(rawMsg)
+
+    window.dispatchEvent(new CustomEvent('show-fallback-payment', { 
+      detail: { 
+        amount: totalCost.toLocaleString(), 
+        description: 'MX2ViralWorld Social Media Service',
+        whatsappMessage: waMsg // Pass the custom message to the modal
+      } 
+    }))
+  }
 
   const handleOrder = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -90,12 +122,7 @@ export default function SocialGrowthPanel() {
 
     // FALLBACK: If Paystack key is missing, open the Manual Bank Transfer Modal
     if (!paystackKey || typeof window === 'undefined' || !(window as any).PaystackPop) {
-      window.dispatchEvent(new CustomEvent('show-fallback-payment', { 
-        detail: { 
-          amount: totalCost.toLocaleString(), 
-          description: 'MX2ViralWorld Social Media Service' 
-        } 
-      }))
+      triggerFallback()
       return // Stop here so Paystack doesn't try to load
     }
 
@@ -113,12 +140,7 @@ export default function SocialGrowthPanel() {
           placeSmmOrder(reference)
         },
         onClose: function() {
-          window.dispatchEvent(new CustomEvent('show-fallback-payment', { 
-            detail: { 
-              amount: totalCost.toLocaleString(), 
-              description: 'MX2ViralWorld Social Media Service' 
-            } 
-          }))
+          triggerFallback()
           setLoading(false)
         }
       })
@@ -176,7 +198,7 @@ export default function SocialGrowthPanel() {
 
       {/* Slide-out Drawer */}
       {isOpen && (
-        <div className="fixed bottom-24 left-6 z-[100] w-[calc(100vw-3rem)] sm:w-80 max-h-[75vh] bg-white rounded-2xl shadow-2xl border border-black/10 flex flex-col overflow-hidden">
+        <div className="fixed bottom-24 left-6 z-[100] w-[calc(100vw-3rem)] sm:w-80 max-h-[75vh] bg-white rounded-2xl shadow-2xl border border-black/10 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
           {/* Header */}
           <div className="bg-ink text-white p-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -188,9 +210,19 @@ export default function SocialGrowthPanel() {
                 <p className="text-[10px] text-white/70 mt-0.5">Boost your social media</p>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-[9px] uppercase tracking-wider text-white/50">Balance</div>
-              <div className="font-bold text-accent text-sm">₦{balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <div className="text-[9px] uppercase tracking-wider text-white/50">Balance</div>
+                <div className="font-bold text-accent text-sm tracking-widest">••••••</div>
+              </div>
+              <button 
+                onClick={() => setIsOpen(false)}
+                className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+                aria-label="Close Panel"
+              >
+                <i className="fas fa-times text-xs"></i>
+              </button>
             </div>
           </div>
 
@@ -226,6 +258,24 @@ export default function SocialGrowthPanel() {
                   />
                 </div>
 
+                {/* Category Dropdown */}
+                <div>
+                  <label className="text-[11px] font-medium text-muted block mb-1">Service Type (Category)</label>
+                  <select 
+                    value={selectedCategory} 
+                    onChange={(e) => {
+                      setSelectedCategory(e.target.value)
+                      setServiceId('') // Reset service when category changes
+                    }}
+                    className="form-input !py-2 !text-xs"
+                  >
+                    <option value="">All Categories</option>
+                    {categories.map((cat, i) => (
+                      <option key={i} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
                 <div>
                   <label className="text-[11px] font-medium text-muted block mb-1">Select Service</label>
                   <select 
@@ -242,7 +292,7 @@ export default function SocialGrowthPanel() {
                     className="form-input !py-2 !text-xs"
                   >
                     <option value="">Choose a service...</option>
-                    {services.map((svc: any) => {
+                    {filteredServices.map((svc: any) => {
                       const markup = getMarkup(svc.name)
                       return (
                         <option key={svc.service} value={svc.service}>
@@ -254,13 +304,13 @@ export default function SocialGrowthPanel() {
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-medium text-muted block mb-1">Link (Username/URL)</label>
+                  <label className="text-[11px] font-medium text-muted block mb-1">Link</label>
                   <input 
                     type="text" 
                     value={link} 
                     onChange={(e) => setLink(e.target.value)} 
                     required
-                    placeholder="https://instagram.com/yourprofile"
+                    placeholder={getLinkPlaceholder(selectedService?.name)}
                     className="form-input !py-2 !text-xs"
                   />
                 </div>

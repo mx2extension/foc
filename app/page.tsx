@@ -6,24 +6,14 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase/client'
 
 export default async function Home() {
-  // 1. Run all database queries concurrently for maximum speed (prevents hanging)
-  const [providersRes, booksRes, coursesRes, resourcesRes, podcastsRes, newsRes] = await Promise.all([
+  // 1. Run database queries concurrently (only what we actually need to display)
+  const [providersRes, newsRes] = await Promise.all([
     supabase.from('providers').select('*').eq('is_approved', true),
-    supabase.from('books').select('*', { count: 'exact', head: true }),
-    supabase.from('courses').select('*', { count: 'exact', head: true }),
-    supabase.from('resources').select('*', { count: 'exact', head: true }),
-    supabase.from('resources').select('*', { count: 'exact', head: true }).eq('type', 'podcast'),
     supabase.from('news_updates').select('*').order('created_at', { ascending: false }).limit(3)
   ])
 
-  // 2. Calculate real stats safely
+  // 2. Extract data safely — no counts, no quantities shown
   const allProviders = providersRes.data || []
-  const providerCount = allProviders.length
-  const uniqueCountries = new Set(allProviders.map(p => p.country).filter(Boolean)).size || 0
-  const booksCount = booksRes.count || 0
-  const coursesCount = coursesRes.count || 0
-  const resourcesCount = resourcesRes.count || 0
-  const podcastsCount = podcastsRes.count || 0
   const latestNews = newsRes.data || []
 
   // 3. Sort providers to prioritize Pro & Verified on the homepage safely
@@ -108,11 +98,11 @@ export default async function Home() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { icon: 'fa-user-tie', title: 'Professionals', desc: 'Find trusted experts across every field.', meta: `${providerCount} providers • ${uniqueCountries} countries`, color: 'bg-primary/10 text-primary', link: '/providers' },
-              { icon: 'fa-book-open', title: 'Books', desc: 'A curated digital bookstore of independent titles.', meta: `${booksCount} titles • Instant download`, color: 'bg-accent/15 text-accent', link: '/books' },
-              { icon: 'fa-graduation-cap', title: 'Courses', desc: 'Live and self-paced courses taught by practitioners.', meta: `${coursesCount} courses • Taught by doers`, color: 'bg-ink/10 text-ink', link: '/courses' },
-              { icon: 'fa-microphone-lines', title: 'Podcasts', desc: 'Conversations with builders and thinkers.', meta: `Curated weekly • ${podcastsCount} shows`, color: 'bg-primary/10 text-primary', link: '/resources' },
-              { icon: 'fa-toolbox', title: 'Resources', desc: 'Tools, articles, and movies for the lifelong learner.', meta: `${resourcesCount} resources • Updated daily`, color: 'bg-accent/15 text-accent', link: '/resources' },
+              { icon: 'fa-user-tie', title: 'Professionals', desc: 'Find trusted experts across every field.', meta: 'Verified experts • Global network', color: 'bg-primary/10 text-primary', link: '/providers' },
+              { icon: 'fa-book-open', title: 'Books', desc: 'A curated digital bookstore of independent titles.', meta: 'Curated titles • Instant download', color: 'bg-accent/15 text-accent', link: '/books' },
+              { icon: 'fa-graduation-cap', title: 'Courses', desc: 'Live and self-paced courses taught by practitioners.', meta: 'Live & self-paced • Taught by doers', color: 'bg-ink/10 text-ink', link: '/courses' },
+              { icon: 'fa-microphone-lines', title: 'Podcasts', desc: 'Conversations with builders and thinkers.', meta: 'Curated weekly • Fresh episodes', color: 'bg-primary/10 text-primary', link: '/resources' },
+              { icon: 'fa-toolbox', title: 'Resources', desc: 'Tools, articles, and movies for the lifelong learner.', meta: 'Hand-picked • Updated regularly', color: 'bg-accent/15 text-accent', link: '/resources' },
               { icon: 'fa-compass', title: 'Community', desc: 'Get-To-Know About the Campus to Stay Involved', meta: 'Weekly drops • Community-curated', color: 'bg-ink/10 text-ink', link: '/community' },
             ].map((cat, i) => (
               <Link href={cat.link} key={i} className={`premium-card p-8 lg:p-10 group cursor-pointer reveal reveal-delay-${(i % 3) + 1}`}>

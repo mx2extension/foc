@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<any>({ // Fixed type inference
+  const [stats, setStats] = useState<any>({ 
     pendingProviders: 0,
     pendingVerifications: 0,
     totalRevenue: 0,
@@ -32,12 +32,9 @@ export default function AdminDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto py-32 px-6">
-      <div className="flex justify-between items-center mb-12">
-        <div>
-          <h1 className="serif text-5xl mb-2">Admin Dashboard</h1>
-          <p className="text-muted">Manage the campus ecosystem.</p>
-        </div>
-        <button onClick={handleLogout} className="btn-secondary !py-2.5 !px-5 text-sm">Log Out</button>
+      <div className="mb-12">
+        <h1 className="serif text-5xl mb-2">Admin Dashboard</h1>
+        <p className="text-muted">Manage the campus ecosystem.</p>
       </div>
 
       <div className="grid md:grid-cols-4 gap-4 mb-12">
@@ -47,7 +44,7 @@ export default function AdminDashboard() {
         <div className="premium-card p-6"><div className="text-xs text-muted uppercase tracking-wider mb-2">Total Revenue</div><div className="serif text-4xl text-green-600">₦{stats.totalRevenue.toLocaleString()}</div></div>
       </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
         <Link href="/dashboard/admin/providers" className="premium-card p-8 hover:border-primary/30 transition"><i className="fas fa-users text-2xl text-primary mb-4"></i><h3 className="serif text-2xl mb-2">Manage Providers</h3><p className="text-sm text-muted">Approve, reject, edit, and feature providers.</p></Link>
         <Link href="/dashboard/admin/verifications" className="premium-card p-8 hover:border-primary/30 transition"><i className="fas fa-badge-check text-2xl text-accent mb-4"></i><h3 className="serif text-2xl mb-2">Verifications</h3><p className="text-sm text-muted">Review paid verification requests.</p></Link>
         <Link href="/dashboard/admin/books" className="premium-card p-8 hover:border-primary/30 transition"><i className="fas fa-book text-2xl text-ink mb-4"></i><h3 className="serif text-2xl mb-2">Manage Books</h3><p className="text-sm text-muted">Add, edit, or remove bookstore titles.</p></Link>
@@ -58,6 +55,10 @@ export default function AdminDashboard() {
         <Link href="/dashboard/admin/downloads" className="premium-card p-8 hover:border-primary/30 transition"><i className="fas fa-download text-2xl text-accent mb-4"></i><h3 className="serif text-2xl mb-2">Manage Downloads</h3><p className="text-sm text-muted">Update book download links.</p></Link>
         <Link href="/dashboard/admin/news" className="premium-card p-8 hover:border-primary/30 transition"><i className="fas fa-newspaper text-2xl text-ink mb-4"></i><h3 className="serif text-2xl mb-2">News & Updates</h3><p className="text-sm text-muted">Publish articles and updates.</p></Link>
         <Link href="/dashboard/admin/messages" className="premium-card p-8 hover:border-primary/30 transition"><i className="fas fa-inbox text-2xl text-primary mb-4"></i><h3 className="serif text-2xl mb-2">Messages</h3><p className="text-sm text-muted">View contact form submissions.</p></Link>
+      </div>
+
+      <div className="flex justify-center border-t border-muted/20 pt-8">
+        <button onClick={handleLogout} className="btn-secondary !py-3 !px-8 text-sm">Log Out</button>
       </div>
     </div>
   )

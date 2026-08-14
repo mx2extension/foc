@@ -4,19 +4,10 @@ import { supabase } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
 const CATEGORIES = [
-  'Technology & IT',
-  'Design & Creatives',
-  'Business & Finance',
-  'Media & Entertainment',
-  'Education & Training',
-  'Health & Wellness',
-  'Beauty & Fashion',
-  'Food & Catering',
-  'Events & Planning',
-  'Home & Repair Services',
-  'Logistics & Transport',
-  'Agriculture & Environment',
-  'Legal & Admin Services'
+  'Technology & IT', 'Design & Creatives', 'Business & Finance', 'Media & Entertainment',
+  'Education & Training', 'Health & Wellness', 'Beauty & Fashion', 'Food & Catering',
+  'Events & Planning', 'Home & Repair Services', 'Logistics & Transport',
+  'Agriculture & Environment', 'Legal & Admin Services'
 ];
 
 export default function BecomeProvider() {
@@ -24,7 +15,7 @@ export default function BecomeProvider() {
   const router = useRouter()
   const [form, setForm] = useState({
     full_name: '', email: '', category: '', profession: '', bio: '', skills: '', 
-    whatsapp: '', country: '', city: ''
+    whatsapp: '', country: '', city: '', education_level: '', school: ''
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => 
@@ -44,17 +35,18 @@ export default function BecomeProvider() {
       whatsapp: form.whatsapp,
       country: form.country,
       city: form.city,
-      social_links: {}, // Empty initially
-      is_approved: false,
+      education_level: form.education_level,
+      school: form.school,
+      social_links: {},
+      is_approved: true, // Auto-approve providers
       verification_status: 'not_verified'
     }).select().single()
 
     if (!error && data) {
-      // Automatically log them in to localStorage
       localStorage.setItem('foc_provider', JSON.stringify(data))
       router.push('/dashboard/provider')
     } else {
-      alert('Error submitting form. Please ensure you haven\\\'t already registered with this email.')
+      alert('Error submitting form. Please ensure you haven\'t already registered with this email.')
       setLoading(false)
     }
   }
@@ -62,12 +54,8 @@ export default function BecomeProvider() {
   return (
     <div className="max-w-2xl mx-auto px-6 lg:px-10 py-32">
       <div className="text-center mb-12">
-        <h1 className="serif text-4xl md:text-5xl mb-3">
-          Register as a <span className="gradient-text">Provider</span>
-        </h1>
-        <p className="text-muted">
-          Create your account to join the campus.
-        </p>
+        <h1 className="serif text-4xl md:text-5xl mb-3">Register as a <span className="gradient-text">Provider</span></h1>
+        <p className="text-muted">Create your account to join the campus.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="premium-card p-8 md:p-10 space-y-6">
@@ -97,13 +85,24 @@ export default function BecomeProvider() {
         </div>
 
         <div>
-          <label className="text-sm font-medium mb-2 block">Short Bio *</label>
-          <textarea name="bio" required rows={4} onChange={handleChange} className="form-input" placeholder="Tell us about yourself, your work, and what makes you different..."></textarea>
+          <label className="text-sm font-medium mb-2 block">Short Bio * <span className="text-xs text-muted">(Max 2-3 sentences)</span></label>
+          <textarea name="bio" required rows={3} onChange={handleChange} className="form-input" placeholder="Tell us about yourself, your work, and what makes you different..."></textarea>
         </div>
 
         <div>
           <label className="text-sm font-medium mb-2 block">Skills (comma separated) *</label>
           <input name="skills" required onChange={handleChange} className="form-input" placeholder="branding, strategy, copywriting, research" />
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-5">
+          <div>
+            <label className="text-sm font-medium mb-2 block">Highest Education Level</label>
+            <input name="education_level" onChange={handleChange} className="form-input" placeholder="e.g. B.Sc, HND, SSCE" />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">School Attended</label>
+            <input name="school" onChange={handleChange} className="form-input" placeholder="e.g. University of Lagos" />
+          </div>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-5">

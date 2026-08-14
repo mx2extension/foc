@@ -1,83 +1,34 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase/client'
-
-// Helper function to extract keywords from natural language
-function extractCriteria(query: string) {
-  const lowerQuery = query.toLowerCase()
-  
-  // Known locations (can be expanded)
-  const locations = ['abuja', 'lagos', 'kano', 'port harcourt', 'bauchi', 'jos', 'enugu', 'ibadan']
-  let location = null
-  for (const loc of locations) {
-    if (lowerQuery.includes(loc)) {
-      location = loc
-      break
-    }
-  }
-
-  // Known categories/services
-  const services = [
-    'graphic designer', 'web developer', 'photographer', 'plumber', 'fashion designer', 
-    'social media manager', 'accountant', 'makeup artist', 'interior designer', 'writer'
-  ]
-  let service = null
-  for (const svc of services) {
-    if (lowerQuery.includes(svc)) {
-      service = svc
-      break
-    }
-  }
-
-  // Fallback: if no specific service is matched, use the whole query minus the location
-  let generalSearch = lowerQuery
-  if (location) generalSearch = generalSearch.replace(location, '').trim()
-  generalSearch = generalSearch.replace(/i need a |i need an |looking for /g, '').trim()
-
-  return { location, service, generalSearch }
-}
+import { searchProviders } from '@/lib/agent'
 
 export async function POST(req: Request) {
   try {
     const { message } = await req.json()
     if (!message) return NextResponse.json({ error: 'Message is required' }, { status: 400 })
 
-    const { location, service, generalSearch } = extractCriteria(message)
+    const lowerQuery = message.toLowerCase()
 
-    // Build Supabase query
-    let query = supabase
-      .from('providers')
-      .select('*')
-      .eq('is_approved', true)
+    // 1. Check Knowledge Base First
+    const { data: kbData } = await supabase
+      .from('agent_knowledge_base')
+      .select('answer')
+      .or(`keywords.ilike.%${lowerQuery}%,question.ilike.%${lowerQuery}%`)
+      .limit(1)
 
-    // Apply location filter if found
-    if (location) {
-      query = query.or(`city.ilike.%${location}%,country.ilike.%${location}%`)
+    if (kbData && kbData.length > 0) {
+      return NextResponse.json({ answer: kbData[0].answer })
     }
 
-    // Apply service filter if found
-    if (service) {
-      query = query.or(`profession.ilike.%${service}%,category.ilike.%${service}%,skills.cs.{${service}}`)
-    } else if (generalSearch) {
-      // Fallback to general text search across multiple fields
-      query = query.or(`profession.ilike.%${generalSearch}%,category.ilike.%${generalSearch}%,skills.cs.{${generalSearch}}`)
+    // 2. If no KB match, search Providers
+    const providers = await searchProviders(message)
+
+    if (providers.length > 0) {
+      return NextResponse.json({ providers, count: providers.length })
     }
 
-    // Limit results for MVP (return top 5)
-    const { data: providers, error } = await query.limit(5)
-
-    if (error) throw error
-
-    // Sort in code: Verified (2) > Pro (1) > Free (0)
-    const sortedProviders = (providers || []).sort((a, b) => {
-      const aScore = (a.verification_status === 'verified' ? 2 : 0) + (a.membership === 'pro' ? 1 : 0)
-      const bScore = (b.verification_status === 'verified' ? 2 : 0) + (b.membership === 'pro' ? 1 : 0)
-      return bScore - aScore
-    })
-
-    return NextResponse.json({ 
-      providers: sortedProviders, 
-      count: sortedProviders.length 
-    })
+    // 3. Fallback
+    return NextResponse.json({ answer: "I couldn't find specific information or a provider for that. Try asking 'What is FindOneCampus?' or 'I need a graphic designer in Abuja'." })
 
   } catch (error) {
     console.error('Agent API Error:', error)

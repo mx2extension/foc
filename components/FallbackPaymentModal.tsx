@@ -6,14 +6,16 @@ export default function FallbackPaymentModal() {
   const [copied, setCopied] = useState(false)
   const [details, setDetails] = useState({
     amount: '',
-    description: 'your purchase'
+    description: 'your purchase',
+    whatsappMessage: '' // Added to catch custom SMM messages
   })
 
   useEffect(() => {
     const showModal = (e: any) => {
       setDetails({
         amount: e.detail?.amount || '',
-        description: e.detail?.description || 'your purchase'
+        description: e.detail?.description || 'your purchase',
+        whatsappMessage: e.detail?.whatsappMessage || '' // Catch the custom message
       })
       setIsOpen(true)
     }
@@ -28,6 +30,11 @@ export default function FallbackPaymentModal() {
   }
 
   if (!isOpen) return null
+
+  // Use the custom message if provided, otherwise use the default generic message
+  const waLink = details.whatsappMessage 
+    ? `https://wa.me/2348149193063?text=${details.whatsappMessage}`
+    : `https://wa.me/2348149193063?text=Hello%20FindOneCampus,%20I%20just%20made%20a%20bank%20transfer%20of%20${details.amount || 'funds'}%20for%20${details.description}.%20Here%20is%20the%20screenshot.`
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
@@ -72,7 +79,7 @@ export default function FallbackPaymentModal() {
         </div>
 
         <a 
-          href={`https://wa.me/2348149193063?text=Hello%20FindOneCampus,%20I%20just%20made%20a%20bank%20transfer%20of%20${details.amount || 'funds'}%20for%20${details.description}.%20Here%20is%20the%20screenshot.`}
+          href={waLink} 
           target="_blank" 
           rel="noopener noreferrer"
           className="btn-primary w-full justify-center !py-3.5"
@@ -81,7 +88,7 @@ export default function FallbackPaymentModal() {
         </a>
         
         <p className="text-[10px] text-center text-muted mt-4">
-          Your account will be activated manually once the payment is confirmed. Please allow a few minutes.
+          Your account will be activated manually once the payment is confirmed. Click the button above to send your receipt.
         </p>
       </div>
     </div>
