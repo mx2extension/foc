@@ -25,28 +25,36 @@ export default function AboutBookPage() {
 
   const handleBuy = async () => {
     if (!reader) { showToast('Please log in first.'); window.location.href = `/login?redirect=/books/${book.id}`; return }
-    const paystackKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY
-    if (!paystackKey || !(window as any).PaystackPop) {
+    
+    const flwKey = process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY
+    if (!flwKey || !(window as any).FlutterwaveCheckout) {
       window.dispatchEvent(new CustomEvent('show-fallback-payment', { detail: { amount: book.price.toLocaleString(), description: `${book.title} (Book)` }}))
       return
     }
+
     setPaying(true)
     const reference = generateReference('BOOK')
     const buyerEmail = reader.email.toLowerCase()
     await supabase.from('payments').insert({ amount: book.price, status: 'pending', reference, item_type: 'book', item_id: book.id, email: buyerEmail })
     try {
-      const handler = (window as any).PaystackPop.setup({
-        key: paystackKey, email: buyerEmail, amount: book.price * 100, ref: reference,
-        callback: function(response: any) {
-          const vp = async () => {
-            await supabase.from('payments').update({ status: 'success' }).eq('reference', reference)
-            await supabase.from('book_purchases').insert({ reader_email: buyerEmail, book_id: book.id, reference: reference })
-            setIsOwned(true); showToast('Purchase successful!')
-          }; vp()
+      (window as any).FlutterwaveCheckout({
+        public_key: flwKey,
+        tx_ref: reference,
+        amount: book.price,
+        currency: 'NGN',
+        payment_options: 'card, banktransfer, ussd',
+        customer: { email: buyerEmail },
+        callback: function(data: any) {
+          if (data.status === 'successful' || data.status === 'completed') {
+            const vp = async () => {
+              await supabase.from('payments').update({ status: 'success' }).eq('reference', reference)
+              await supabase.from('book_purchases').insert({ reader_email: buyerEmail, book_id: book.id, reference: reference })
+              setIsOwned(true); showToast('Purchase successful!')
+            }; vp()
+          }
         },
-        onClose: function() { setPaying(false) }
+        onclose: function() { setPaying(false) }
       })
-      handler.openIframe()
     } catch (error) { showToast('Error initiating payment.'); setPaying(false) }
   }
 
@@ -58,28 +66,20 @@ export default function AboutBookPage() {
 
   return (
     <div className="relative overflow-hidden py-32 px-6 lg:px-10">
-      {/* PREMIUM IN-PAGE READER MODAL (No external downloads) */}
       {isReaderOpen && (
         <div className="fixed inset-0 bg-black/95 z-[200] flex flex-col p-2 md:p-6">
           <div className="flex justify-between items-center mb-2 md:mb-4 px-2">
             <h3 className="text-white serif text-lg md:text-2xl">{book.title}</h3>
-            <button onClick={() => setIsReaderOpen(false)} className="text-white w-9 h-9 md:w-10 md:h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
-              <i className="fas fa-times text-lg md:text-xl"></i>
-            </button>
+            <button onClick={() => setIsReaderOpen(false)} className="text-white w-9 h-9 md:w-10 md:h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition"><i className="fas fa-times text-lg md:text-xl"></i></button>
           </div>
-          {/* The iframe opens the PDF securely inside the website */}
-          <div className="flex-1 bg-white rounded-xl md:rounded-2xl overflow-hidden">
-            <iframe src={book.download_url} className="w-full h-full" title={book.title}></iframe>
-          </div>
+          <div className="flex-1 bg-white rounded-xl md:rounded-2xl overflow-hidden"><iframe src={book.download_url} className="w-full h-full" title={book.title}></iframe></div>
         </div>
       )}
-
       {toast && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] animate-[slideUp_0.3s_ease]">
           <div className="flex items-center gap-3 px-6 py-4 rounded-full shadow-2xl text-white text-sm font-medium bg-green-600"><i className="fas fa-check-circle text-lg"></i><span>{toast}</span></div>
         </div>
       )}
-
       <div className="max-w-4xl mx-auto">
         <Link href="/books" className="mb-12 inline-flex items-center gap-2 text-sm text-muted hover:text-primary transition"><i className="fas fa-arrow-left text-xs"></i> Back to Bookstore</Link>
         <div className="grid md:grid-cols-3 gap-12">
@@ -104,15 +104,7 @@ export default function AboutBookPage() {
             <p className="text-lg text-muted leading-relaxed mb-8 font-light">{book.description}</p>
             <div className="flex items-center gap-4 mb-10">
               {book.price === 0 ? (<span className="px-4 py-2 rounded-full bg-green-100 text-green-800 font-bold text-sm">Free</span>) : (<span className="px-4 py-2 rounded-full bg-primary/10 text-primary font-bold text-sm">₦{book.price.toLocaleString()}</span>)}
-              {isOwned || book.price === 0 ? (
-                <button onClick={() => setIsReaderOpen(true)} className="btn-primary !py-3 !px-6 text-sm">
-                  <i className="fas fa-book-open"></i> Read Book
-                </button>
-              ) : (
-                <button onClick={handleBuy} disabled={paying} className="btn-primary !py-3 !px-6 text-sm disabled:opacity-50">
-                  {paying ? 'Processing...' : <><i className="fas fa-cart-shopping"></i> Buy Now</>}
-                </button>
-              )}
+              {isOwned || book.price === 0 ? (<button onClick={() => setIsReaderOpen(true)} className="btn-primary !py-3 !px-6 text-sm"><i className="fas fa-book-open"></i> Read Book</button>) : (<button onClick={handleBuy} disabled={paying} className="btn-primary !py-3 !px-6 text-sm disabled:opacity-50">{paying ? 'Processing...' : <><i className="fas fa-cart-shopping"></i> Buy Now</>}</button>)}
             </div>
             {book.about && (<div className="premium-card p-8 mb-10"><h2 className="serif text-2xl mb-4">About the Book</h2><div className="prose prose-lg max-w-none text-ink/80 leading-relaxed space-y-4">{book.about.split('\n').map((p: string, i: number) => <p key={i}>{p}</p>)}</div></div>)}
             <div className="border-t border-black/5 pt-8">

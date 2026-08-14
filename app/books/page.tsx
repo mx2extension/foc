@@ -6,7 +6,7 @@ import Link from 'next/link'
 
 export default function BooksPage() {
   const [reader, setReader] = useState<any>(null)
-  const [books, setBooks] = useState<any[]>([]) // Fixed never[] error
+  const [books, setBooks] = useState<any[]>([])
   const [ownedBookIds, setOwnedBookIds] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState<string | null>(null)
@@ -40,30 +40,40 @@ export default function BooksPage() {
   const handleLogout = () => { localStorage.removeItem('foc_reader'); setReader(null); setOwnedBookIds([]); setBooks([]); setActiveTab('all') }
 
   const handleBuyBook = async (book: any) => {
-    const paystackKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY
-    if (!paystackKey || !(window as any).PaystackPop) {
+    const flwKey = process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY
+    
+    // Fallback to Manual Bank Transfer if Flutterwave is not configured
+    if (!flwKey || !(window as any).FlutterwaveCheckout) {
       window.dispatchEvent(new CustomEvent('show-fallback-payment', { detail: { amount: book.price.toLocaleString(), description: `${book.title} (Book)` }}))
       return
     }
+
     const reference = generateReference('BOOK')
     const buyerEmail = reader?.email.toLowerCase()
+
     await supabase.from('payments').insert({ amount: book.price, status: 'pending', reference, item_type: 'book', item_id: book.id, email: buyerEmail })
+
     try {
-      const handler = (window as any).PaystackPop.setup({
-        key: paystackKey, email: buyerEmail, amount: book.price * 100, ref: reference,
-        metadata: { item_type: 'book', item_id: book.id },
-        callback: function(response: any) {
-          const verifyPayment = async () => {
-            await supabase.from('payments').update({ status: 'success' }).eq('reference', reference)
-            await supabase.from('book_purchases').insert({ reader_email: buyerEmail, book_id: book.id, reference: reference })
-            setOwnedBookIds(prev => [...prev, book.id])
-            showToast('Purchase successful! You can now read the book.')
+      (window as any).FlutterwaveCheckout({
+        public_key: flwKey,
+        tx_ref: reference,
+        amount: book.price,
+        currency: 'NGN',
+        payment_options: 'card, banktransfer, ussd',
+        customer: { email: buyerEmail },
+        callback: function(data: any) {
+          if (data.status === 'successful' || data.status === 'completed') {
+            const verifyPayment = async () => {
+              await supabase.from('payments').update({ status: 'success' }).eq('reference', reference)
+              await supabase.from('book_purchases').insert({ reader_email: buyerEmail, book_id: book.id, reference: reference })
+              setOwnedBookIds(prev => [...prev, book.id])
+              showToast('Purchase successful! You can now read the book.')
+            }
+            verifyPayment()
           }
-          verifyPayment()
         },
-        onClose: function() {}
+        onclose: function() {}
       })
-      handler.openIframe()
     } catch (error) { showToast('Error initiating payment.') }
   }
 

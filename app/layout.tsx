@@ -50,7 +50,7 @@ export const metadata = {
 }
 
 declare global {
-  interface Window { PaystackPop: any }
+  interface Window { PaystackPop: any; FlutterwaveCheckout: any }
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -64,6 +64,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="font-sans">
         <Script src="https://js.paystack.co/v1/inline.js" strategy="beforeInteractive" />
+        {/* Added Flutterwave Script */}
+        <Script src="https://checkout.flutterwave.com/v3.js" strategy="beforeInteractive" />
+        
         <ScrollReveal />
         <div className="lg:hidden">
           <Navbar />

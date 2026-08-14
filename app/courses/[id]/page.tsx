@@ -24,8 +24,8 @@ export default function AboutCoursePage() {
 
   const handleBuy = async () => {
     if (!reader) { showToast('Please log in first.'); window.location.href = `/login?redirect=/courses/${course.id}`; return }
-    const paystackKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY
-    if (!paystackKey || !(window as any).PaystackPop) {
+    const flwKey = process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY
+    if (!flwKey || !(window as any).FlutterwaveCheckout) {
       window.dispatchEvent(new CustomEvent('show-fallback-payment', { detail: { amount: course.price.toLocaleString(), description: `${course.title} (Course)` }}))
       return
     }
@@ -34,29 +34,31 @@ export default function AboutCoursePage() {
     const buyerEmail = reader.email.toLowerCase()
     await supabase.from('payments').insert({ amount: course.price, status: 'pending', reference, item_type: 'course', item_id: course.id, email: buyerEmail })
     try {
-      const handler = (window as any).PaystackPop.setup({
-        key: paystackKey, email: buyerEmail, amount: course.price * 100, ref: reference,
-        callback: function(response: any) {
-          const vp = async () => {
-            await supabase.from('payments').update({ status: 'success' }).eq('reference', reference)
-            await supabase.from('course_enrollments').insert({ reader_email: buyerEmail, course_id: course.id, reference: reference })
-            setIsEnrolled(true); showToast('Enrollment successful!')
-          }; vp()
+      (window as any).FlutterwaveCheckout({
+        public_key: flwKey,
+        tx_ref: reference,
+        amount: course.price,
+        currency: 'NGN',
+        payment_options: 'card, banktransfer, ussd',
+        customer: { email: buyerEmail },
+        callback: function(data: any) {
+          if (data.status === 'successful' || data.status === 'completed') {
+            const vp = async () => {
+              await supabase.from('payments').update({ status: 'success' }).eq('reference', reference)
+              await supabase.from('course_enrollments').insert({ reader_email: buyerEmail, course_id: course.id, reference: reference })
+              setIsEnrolled(true); showToast('Enrollment successful!')
+            }; vp()
+          }
         },
-        onClose: function() { setPaying(false) }
+        onclose: function() { setPaying(false) }
       })
-      handler.openIframe()
     } catch (error) { showToast('Error initiating payment.'); setPaying(false) }
   }
 
-  // Convert standard YouTube URL to a locked-down Embed URL
   const getEmbedUrl = (url: string) => {
     if (!url) return ''
     const yt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([\w-]{11})/)
-    if (yt) {
-      // Added parameters to disable related videos, titles, and YouTube branding
-      return `https://www.youtube.com/embed/${yt[1]}?rel=0&modestbranding=1&showinfo=0`
-    }
+    if (yt) return `https://www.youtube.com/embed/${yt[1]}?rel=0&modestbranding=1&showinfo=0`
     return url
   }
 
@@ -73,32 +75,22 @@ export default function AboutCoursePage() {
           <div className="flex items-center gap-3 px-6 py-4 rounded-full shadow-2xl text-white text-sm font-medium bg-green-600"><i className="fas fa-check-circle text-lg"></i><span>{toast}</span></div>
         </div>
       )}
-
       <div className="max-w-5xl mx-auto">
         <Link href="/courses" className="mb-12 inline-flex items-center gap-2 text-sm text-muted hover:text-primary transition"><i className="fas fa-arrow-left text-xs"></i> Back to Courses</Link>
-
         <div className="grid md:grid-cols-3 gap-12">
-          {/* Sidebar */}
           <div className="md:col-span-1">
             <div className="premium-card p-8 sticky top-32">
               <div className="section-label mb-4">Course Details</div>
               <h1 className="serif text-3xl mb-3" style={{ lineHeight: 1, letterSpacing: '-0.02em' }}>{course.title}</h1>
               <p className="text-primary font-medium mb-6">by {course.instructor}</p>
-              
               <div className="space-y-3 text-sm border-y border-black/5 py-6 mb-6">
                 <div className="flex justify-between"><span className="text-muted">Difficulty:</span> <span className="font-medium">{course.difficulty}</span></div>
                 <div className="flex justify-between"><span className="text-muted">Duration:</span> <span className="font-medium">{course.duration}</span></div>
                 <div className="flex justify-between"><span className="text-muted">Lessons:</span> <span className="font-medium">{course.lessons}</span></div>
               </div>
-
               <div className="flex items-center gap-4 mb-8">
-                {course.price === 0 ? (
-                  <span className="px-4 py-2 rounded-full bg-green-100 text-green-800 font-bold text-sm">Free</span>
-                ) : (
-                  <span className="px-4 py-2 rounded-full bg-primary/10 text-primary font-bold text-sm">₦{course.price.toLocaleString()}</span>
-                )}
+                {course.price === 0 ? (<span className="px-4 py-2 rounded-full bg-green-100 text-green-800 font-bold text-sm">Free</span>) : (<span className="px-4 py-2 rounded-full bg-primary/10 text-primary font-bold text-sm">₦{course.price.toLocaleString()}</span>)}
               </div>
-
               {isEnrolled || course.price === 0 ? (
                 <div className="bg-green-50 text-green-800 p-4 rounded-xl text-sm font-medium text-center"><i className="fas fa-check-circle mr-2"></i> You are enrolled</div>
               ) : (
@@ -106,40 +98,14 @@ export default function AboutCoursePage() {
               )}
             </div>
           </div>
-
-          {/* Main Content Area */}
           <div className="md:col-span-2">
-            {/* Video Player (Strictly In-Page) */}
             {(isEnrolled || course.price === 0) && course.video_url ? (
-              <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl mb-10 bg-ink">
-                <iframe 
-                  className="w-full h-full"
-                  src={getEmbedUrl(course.video_url)} 
-                  title={course.title} 
-                  frameBorder="0" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                  allowFullScreen>
-                </iframe>
-              </div>
+              <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl mb-10 bg-ink"><iframe className="w-full h-full" src={getEmbedUrl(course.video_url)} title={course.title} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe></div>
             ) : (
-              <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl mb-10 bg-neutral-800 flex flex-col items-center justify-center text-white p-8 text-center">
-                <i className="fas fa-lock text-4xl mb-4 text-primary"></i>
-                <h3 className="serif text-2xl mb-2">Premium Content</h3>
-                <p className="text-white/70 text-sm max-w-md">Enroll in this course to unlock the video lessons and full curriculum.</p>
-              </div>
+              <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl mb-10 bg-neutral-800 flex flex-col items-center justify-center text-white p-8 text-center"><i className="fas fa-lock text-4xl mb-4 text-primary"></i><h3 className="serif text-2xl mb-2">Premium Content</h3><p className="text-white/70 text-sm max-w-md">Enroll in this course to unlock the video lessons and full curriculum.</p></div>
             )}
-
             <p className="text-lg text-muted leading-relaxed mb-8 font-light">{course.description}</p>
-            
-            {course.about && (
-              <div className="premium-card p-8 mb-10">
-                <h2 className="serif text-2xl mb-4">About this Course</h2>
-                <div className="prose prose-lg max-w-none text-ink/80 leading-relaxed space-y-4">
-                  {course.about.split('\n').map((p: string, i: number) => <p key={i}>{p}</p>)}
-                </div>
-              </div>
-            )}
-
+            {course.about && (<div className="premium-card p-8 mb-10"><h2 className="serif text-2xl mb-4">About this Course</h2><div className="prose prose-lg max-w-none text-ink/80 leading-relaxed space-y-4">{course.about.split('\n').map((p: string, i: number) => <p key={i}>{p}</p>)}</div></div>)}
             <div className="border-t border-black/5 pt-8">
               <h3 className="text-sm font-semibold text-ink/80 mb-4">Share this course</h3>
               <div className="flex items-center gap-3">
@@ -153,7 +119,6 @@ export default function AboutCoursePage() {
           </div>
         </div>
       </div>
-
       <style>{`@keyframes slideUp { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }`}</style>
     </div>
   )

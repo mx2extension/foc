@@ -55,6 +55,7 @@ export default function AdminDashboard() {
         <Link href="/dashboard/admin/downloads" className="premium-card p-8 hover:border-primary/30 transition"><i className="fas fa-download text-2xl text-accent mb-4"></i><h3 className="serif text-2xl mb-2">Manage Downloads</h3><p className="text-sm text-muted">Update book download links.</p></Link>
         <Link href="/dashboard/admin/news" className="premium-card p-8 hover:border-primary/30 transition"><i className="fas fa-newspaper text-2xl text-ink mb-4"></i><h3 className="serif text-2xl mb-2">News & Updates</h3><p className="text-sm text-muted">Publish articles and updates.</p></Link>
         <Link href="/dashboard/admin/messages" className="premium-card p-8 hover:border-primary/30 transition"><i className="fas fa-inbox text-2xl text-primary mb-4"></i><h3 className="serif text-2xl mb-2">Messages</h3><p className="text-sm text-muted">View contact form submissions.</p></Link>
+        <Link href="/dashboard/admin/smm-orders" className="premium-card p-8 hover:border-primary/30 transition"><i className="fas fa-list-check text-2xl text-primary mb-4"></i><h3 className="serif text-2xl mb-2">Queued SMM Orders</h3> <p className="text-sm text-muted">View paid orders waiting for balance top-up.</p></Link>
       </div>
 
       <div className="flex justify-center border-t border-muted/20 pt-8">

@@ -52,31 +52,39 @@ export default async function ProviderProfile({ params }: { params: { id: string
             {/* Mediation Note for Clients */}
             <div className="bg-paper p-4 rounded-xl border border-black/5 mt-6">
               <h4 className="text-xs font-semibold text-ink mb-1">Need Assistance?</h4>
-              <p className="text-[11px] text-muted leading-relaxed">If you have complaints, need mediation, or require assistance with this provider, FindOneCampus is here to stand in the middle. WhatsApp us: +234 814 919 3063.</p>
+              <p className="text-[11px] text-muted leading-relaxed">
+                If you have complaints, need mediation, or require assistance with this provider, FindOneCampus is here to stand in the middle. WhatsApp us: {' '}
+                <a href="https://wa.me/2349017380098?text=Hello%20FindOneCampus,%20I%20need%20assistance%20with%20a%20provider" target="_blank" rel="noopener noreferrer" className="text-primary font-medium hover:underline">
+                  09017380098
+                </a>.
+              </p>
             </div>
 
-            <div className="mt-8 space-y-3">
-              {provider.social_links?.linkedin && (
-                <a href={provider.social_links.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm hover:text-primary transition">
-                  <i className="fab fa-linkedin w-5"></i> LinkedIn
-                </a>
-              )}
-              {provider.social_links?.twitter && (
-                <a href={provider.social_links.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm hover:text-primary transition">
-                  <i className="fab fa-twitter w-5"></i> Twitter / X
-                </a>
-              )}
-              {provider.social_links?.tiktok && (
-                <a href={provider.social_links.tiktok} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm hover:text-primary transition">
-                  <i className="fab fa-tiktok w-5"></i> TikTok
-                </a>
-              )}
-              {provider.social_links?.portfolio && (
-                <a href={provider.social_links.portfolio} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm hover:text-primary transition">
-                  <i className="fas fa-globe w-5"></i> Portfolio Website
-                </a>
-              )}
-            </div>
+            {/* Social Links (Pro Only) */}
+            {provider.membership === 'pro' && (
+              <div className="mt-8 space-y-3">
+                {provider.social_links?.linkedin && (
+                  <a href={provider.social_links.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm hover:text-primary transition">
+                    <i className="fab fa-linkedin w-5"></i> LinkedIn
+                  </a>
+                )}
+                {provider.social_links?.twitter && (
+                  <a href={provider.social_links.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm hover:text-primary transition">
+                    <i className="fab fa-twitter w-5"></i> Twitter / X
+                  </a>
+                )}
+                {provider.social_links?.tiktok && (
+                  <a href={provider.social_links.tiktok} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm hover:text-primary transition">
+                    <i className="fab fa-tiktok w-5"></i> TikTok
+                  </a>
+                )}
+                {provider.social_links?.portfolio && (
+                  <a href={provider.social_links.portfolio} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm hover:text-primary transition">
+                    <i className="fas fa-globe w-5"></i> Portfolio Website
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

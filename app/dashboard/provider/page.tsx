@@ -69,8 +69,8 @@ export default function ProviderDashboard() {
   }
 
   const handleProUpgrade = async () => {
-    const paystackKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY;
-    if (!paystackKey || !(window as any).PaystackPop) {
+    const flwKey = process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY;
+    if (!flwKey || !(window as any).FlutterwaveCheckout) {
       window.dispatchEvent(new CustomEvent('show-fallback-payment', { detail: { amount: selectedPlan.price.toLocaleString(), description: `Pro Membership (${selectedPlan.months} month(s))` }}))
       return;
     }
@@ -78,30 +78,34 @@ export default function ProviderDashboard() {
     const reference = generateReference('PRO')
     await supabase.from('payments').insert({ amount: selectedPlan.price, status: 'pending', reference, item_type: 'membership', provider_id: provider.id })
     try {
-      const handler = (window as any).PaystackPop.setup({
-        key: paystackKey, email: provider.email || 'guest@findonecampus.com', amount: selectedPlan.price * 100, ref: reference,
-        metadata: { item_type: 'membership', provider_id: provider.id, months: selectedPlan.months },
-        callback: function(response: any) {
-          const verifyAndUpgrade = async () => {
-            const expiryDate = new Date(); expiryDate.setMonth(expiryDate.getMonth() + selectedPlan.months)
-            await supabase.from('providers').update({ membership: 'pro', membership_expires_at: expiryDate.toISOString() }).eq('id', provider.id)
-            await supabase.from('payments').update({ status: 'success' }).eq('reference', reference)
-            setProvider({ ...provider, membership: 'pro', membership_expires_at: expiryDate.toISOString() })
-            const { data: booksData } = await supabase.from('pro_books').select('*').order('created_at', { ascending: false })
-            setProBooks(booksData || [])
-            setUpgrading(false)
-            showToast(`Congratulations! You are now a Pro Member for ${selectedPlan.months} month(s).`, 'success')
-          }; verifyAndUpgrade()
+      (window as any).FlutterwaveCheckout({
+        public_key: flwKey,
+        tx_ref: reference,
+        amount: selectedPlan.price,
+        currency: 'NGN',
+        payment_options: 'card, banktransfer, ussd',
+        customer: { email: provider.email || 'guest@findonecampus.com' },
+        callback: function(data: any) {
+          if (data.status === 'successful' || data.status === 'completed') {
+            const verifyAndUpgrade = async () => {
+              const expiryDate = new Date(); expiryDate.setMonth(expiryDate.getMonth() + selectedPlan.months)
+              await supabase.from('providers').update({ membership: 'pro', membership_expires_at: expiryDate.toISOString() }).eq('id', provider.id)
+              await supabase.from('payments').update({ status: 'success' }).eq('reference', reference)
+              setProvider({ ...provider, membership: 'pro', membership_expires_at: expiryDate.toISOString() })
+              const { data: booksData } = await supabase.from('pro_books').select('*').order('created_at', { ascending: false })
+              setProBooks(booksData || [])
+              setUpgrading(false)
+              showToast(`Congratulations! You are now a Pro Member for ${selectedPlan.months} month(s).`, 'success')
+            }; verifyAndUpgrade()
+          } else { setUpgrading(false) }
         },
-        onClose: function() { setUpgrading(false) }
+        onclose: function() { setUpgrading(false) }
       })
-      handler.openIframe()
     } catch (error) { showToast('Something went wrong.', 'error'); setUpgrading(false) }
   }
 
   const handleLogout = () => { localStorage.removeItem('foc_provider'); router.push('/') }
   const handleSocialClick = (e: React.MouseEvent) => { if (provider.membership !== 'pro') { e.preventDefault(); showToast('Upgrade to Pro to add social links.', 'info') } }
-  
   const copyProfileLink = () => {
     const url = `${window.location.origin}/providers/${provider.id}`
     navigator.clipboard.writeText(url)
@@ -140,7 +144,6 @@ export default function ProviderDashboard() {
         </div>
       </div>
       
-      {/* Mediation Note for Providers */}
       <div className="premium-card p-6 mb-8 bg-paper">
         <div className="flex items-start gap-3">
           <i className="fas fa-headset text-primary text-xl mt-1"></i>
@@ -214,7 +217,6 @@ export default function ProviderDashboard() {
 
         <div><label className="text-sm font-medium mb-2 block">Short Bio</label><textarea rows={3} value={form.bio || ''} onChange={e => setForm({...form, bio: e.target.value})} className="form-input"></textarea></div>
 
-        {/* Long Description (Pro Only) */}
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="text-sm font-medium">Detailed Experience / Longer Bio</label>

@@ -6,7 +6,7 @@ import Link from 'next/link'
 
 export default function CoursesPage() {
   const [reader, setReader] = useState<any>(null)
-  const [courses, setCourses] = useState<any[]>([]) // Fixed never[] error
+  const [courses, setCourses] = useState<any[]>([])
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState<string | null>(null)
@@ -36,8 +36,8 @@ export default function CoursesPage() {
   const handleLogout = () => { localStorage.removeItem('foc_reader'); setReader(null); setEnrolledCourseIds([]); setCourses([]); setActiveTab('all') }
 
   const handleBuyCourse = async (course: any) => {
-    const paystackKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY
-    if (!paystackKey || !(window as any).PaystackPop) {
+    const flwKey = process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY
+    if (!flwKey || !(window as any).FlutterwaveCheckout) {
       window.dispatchEvent(new CustomEvent('show-fallback-payment', { detail: { amount: course.price.toLocaleString(), description: `${course.title} (Course)` }}))
       return
     }
@@ -45,20 +45,25 @@ export default function CoursesPage() {
     const buyerEmail = reader?.email.toLowerCase()
     await supabase.from('payments').insert({ amount: course.price, status: 'pending', reference, item_type: 'course', item_id: course.id, email: buyerEmail })
     try {
-      const handler = (window as any).PaystackPop.setup({
-        key: paystackKey, email: buyerEmail, amount: course.price * 100, ref: reference,
-        metadata: { item_type: 'course', item_id: course.id },
-        callback: function(response: any) {
-          const vp = async () => {
-            await supabase.from('payments').update({ status: 'success' }).eq('reference', reference)
-            await supabase.from('course_enrollments').insert({ reader_email: buyerEmail, course_id: course.id, reference: reference })
-            setEnrolledCourseIds(prev => [...prev, course.id])
-            showToast('Enrollment successful! You can now start the course.')
-          }; vp()
+      (window as any).FlutterwaveCheckout({
+        public_key: flwKey,
+        tx_ref: reference,
+        amount: course.price,
+        currency: 'NGN',
+        payment_options: 'card, banktransfer, ussd',
+        customer: { email: buyerEmail },
+        callback: function(data: any) {
+          if (data.status === 'successful' || data.status === 'completed') {
+            const vp = async () => {
+              await supabase.from('payments').update({ status: 'success' }).eq('reference', reference)
+              await supabase.from('course_enrollments').insert({ reader_email: buyerEmail, course_id: course.id, reference: reference })
+              setEnrolledCourseIds(prev => [...prev, course.id])
+              showToast('Enrollment successful! You can now start the course.')
+            }; vp()
+          }
         },
-        onClose: function() {}
+        onclose: function() {}
       })
-      handler.openIframe()
     } catch (error) { showToast('Error initiating payment.') }
   }
 

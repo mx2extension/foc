@@ -96,24 +96,29 @@ export default function BecomeProvider() {
 
         <div className="grid sm:grid-cols-2 gap-5">
           <div>
-            <label className="text-sm font-medium mb-2 block">Highest Education Level</label>
-            <input name="education_level" onChange={handleChange} className="form-input" placeholder="e.g. B.Sc, HND, SSCE" />
+            <label className="text-sm font-medium mb-2 block">WhatsApp Number *</label>
+            <input name="whatsapp" type="tel" required onChange={handleChange} className="form-input" placeholder="+234 800 000 0000" />
           </div>
           <div>
-            <label className="text-sm font-medium mb-2 block">School Attended</label>
-            <input name="school" onChange={handleChange} className="form-input" placeholder="e.g. University of Lagos" />
+            <label className="text-sm font-medium mb-2 block">Country *</label>
+            <input name="country" required onChange={handleChange} className="form-input" placeholder="Nigeria" />
           </div>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-5">
           <div>
-            <label className="text-sm font-medium mb-2 block">Country *</label>
-            <input name="country" required onChange={handleChange} className="form-input" placeholder="Nigeria" />
-          </div>
-          <div>
             <label className="text-sm font-medium mb-2 block">City *</label>
             <input name="city" required onChange={handleChange} className="form-input" placeholder="Lagos" />
           </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Highest Education Level</label>
+            <input name="education_level" onChange={handleChange} className="form-input" placeholder="e.g. B.Sc, HND, SSCE" />
+          </div>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium mb-2 block">School Attended</label>
+          <input name="school" onChange={handleChange} className="form-input" placeholder="e.g. University of Lagos" />
         </div>
 
         <div className="bg-paper border border-black/5 rounded-xl p-4 text-sm text-muted">
