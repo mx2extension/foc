@@ -130,9 +130,9 @@ export default function SocialGrowthPanel() {
     setWaConfirmLink('')
 
     try {
-      // Initialize Flutterwave Checkout
+      // Initialize Flutterwave Checkout (Using v3 'public_key' parameter)
       (window as any).FlutterwaveCheckout({
-        public_key: flwKey,
+        public_key: flwKey, 
         tx_ref: reference,
         amount: totalCost,
         currency: 'NGN',
