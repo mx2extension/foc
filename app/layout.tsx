@@ -51,9 +51,9 @@ export const metadata = {
     },
   },
   icons: {
-    icon: [{ url: '/icon.png', type: 'image/png' }],
-    shortcut: ['/icon.png'],
-    apple: [{ url: '/icon.png' }],
+    icon: [{ url: '/favicon.png', type: 'image/png' }],
+    shortcut: ['/favicon.png'],
+    apple: [{ url: '/favicon.png' }],
   },
   keywords: [
     'FindOneCampus', 
@@ -72,7 +72,7 @@ export const metadata = {
     description: 'The world is one giant campus where everyone is learning, building, creating, hiring, serving, teaching and growing.',
     url: 'https://findoncampus.com',
     siteName: 'FindOneCampus',
-    images: [{ url: '/icon.png', width: 1200, height: 630, alt: 'FindOneCampus' }],
+    images: [{ url: '/foc_v3.png', width: 1200, height: 630, alt: 'FindOneCampus' }],
     locale: 'en_US',
     type: 'website',
   },
@@ -80,7 +80,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'FindOneCampus — The World Is One Big Campus',
     description: 'The world is one giant campus where everyone is learning, building, creating, hiring, serving, teaching and growing.',
-    images: ['/icon.png'],
+    images: ['/foc_v3.png'],
   },
 }
 
