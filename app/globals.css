@@ -25,6 +25,35 @@ body { font-family: 'Inter', sans-serif; color: var(--text); background: var(--b
 @keyframes orbit { 0%{transform:rotate(0deg) translateX(120px) rotate(0deg)} 100%{transform:rotate(360deg) translateX(120px) rotate(-360deg)} }
 @keyframes lineReveal { to{opacity:1;transform:translateY(0)} }
 
+/* Full Footer Crowd Activity Animation Rows */
+@keyframes rowDrift1 {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes rowDrift2 {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+.animate-footer-row-1 {
+  display: flex;
+  width: 200%;
+  animation: rowDrift1 35s linear infinite;
+}
+
+.animate-footer-row-2 {
+  display: flex;
+  width: 200%;
+  animation: rowDrift2 40s linear infinite;
+}
+
+.animate-footer-row-3 {
+  display: flex;
+  width: 200%;
+  animation: rowDrift1 30s linear infinite;
+}
+
 .float-anim { animation: float 6s ease-in-out infinite; }
 .float-slow { animation: floatSlow 10s ease-in-out infinite; }
 .pulse-ring { animation: pulseRing 3s ease-in-out infinite; }

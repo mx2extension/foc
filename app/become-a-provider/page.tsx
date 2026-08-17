@@ -38,7 +38,7 @@ export default function BecomeProvider() {
       education_level: form.education_level,
       school: form.school,
       social_links: {},
-      is_approved: true, // Auto-approve providers
+      is_approved: true,
       verification_status: 'not_verified'
     }).select().single()
 
@@ -62,11 +62,11 @@ export default function BecomeProvider() {
         <div className="grid sm:grid-cols-2 gap-5">
           <div>
             <label className="text-sm font-medium mb-2 block">Full Name *</label>
-            <input name="full_name" required onChange={handleChange} className="form-input" placeholder="Your full name" />
+            <input name="full_name" required onChange={handleChange} className="form-input" placeholder="Your full name" autoComplete="name" />
           </div>
           <div>
             <label className="text-sm font-medium mb-2 block">Email *</label>
-            <input name="email" type="email" required onChange={handleChange} className="form-input" placeholder="you@email.com" />
+            <input name="email" type="email" required onChange={handleChange} className="form-input" placeholder="you@email.com" autoComplete="email" />
           </div>
         </div>
 
@@ -80,7 +80,7 @@ export default function BecomeProvider() {
           </div>
           <div>
             <label className="text-sm font-medium mb-2 block">Specific Profession *</label>
-            <input name="profession" required onChange={handleChange} className="form-input" placeholder="e.g. Brand Strategist" />
+            <input name="profession" required onChange={handleChange} className="form-input" placeholder="e.g. Brand Strategist" autoComplete="organization-title" />
           </div>
         </div>
 
@@ -97,18 +97,18 @@ export default function BecomeProvider() {
         <div className="grid sm:grid-cols-2 gap-5">
           <div>
             <label className="text-sm font-medium mb-2 block">WhatsApp Number *</label>
-            <input name="whatsapp" type="tel" required onChange={handleChange} className="form-input" placeholder="+234 800 000 0000" />
+            <input name="whatsapp" type="tel" required onChange={handleChange} className="form-input" placeholder="+234 800 000 0000" autoComplete="tel" />
           </div>
           <div>
             <label className="text-sm font-medium mb-2 block">Country *</label>
-            <input name="country" required onChange={handleChange} className="form-input" placeholder="Nigeria" />
+            <input name="country" required onChange={handleChange} className="form-input" placeholder="Nigeria" autoComplete="country-name" />
           </div>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-5">
           <div>
             <label className="text-sm font-medium mb-2 block">City *</label>
-            <input name="city" required onChange={handleChange} className="form-input" placeholder="Lagos" />
+            <input name="city" required onChange={handleChange} className="form-input" placeholder="Lagos" autoComplete="address-level2" />
           </div>
           <div>
             <label className="text-sm font-medium mb-2 block">Highest Education Level</label>
@@ -118,7 +118,7 @@ export default function BecomeProvider() {
 
         <div>
           <label className="text-sm font-medium mb-2 block">School Attended</label>
-          <input name="school" onChange={handleChange} className="form-input" placeholder="e.g. University of Lagos" />
+          <input name="school" onChange={handleChange} className="form-input" placeholder="e.g. University of Lagos" autoComplete="organization" />
         </div>
 
         <div className="bg-paper border border-black/5 rounded-xl p-4 text-sm text-muted">

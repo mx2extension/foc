@@ -44,11 +44,11 @@ export default function CampusLogin() {
       <form onSubmit={handleLogin} className="premium-card p-8 space-y-6 text-left">
         <div>
           <label className="text-sm font-medium mb-2 block">Full Name</label>
-          <input type="text" required value={name} onChange={(e) => setName(e.target.value)} className="form-input" placeholder="Jane Doe" />
+          <input type="text" required value={name} onChange={(e) => setName(e.target.value)} className="form-input" placeholder="Jane Doe" name="name" id="name" autoComplete="name" />
         </div>
         <div>
           <label className="text-sm font-medium mb-2 block">Email Address</label>
-          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="form-input" placeholder="you@email.com" />
+          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="form-input" placeholder="you@email.com" name="email" id="email" autoComplete="email" />
         </div>
         <button type="submit" disabled={loading} className="btn-primary w-full justify-center !py-4 disabled:opacity-50">
           {loading ? 'Accessing...' : 'Access Campus'}

@@ -85,6 +85,11 @@ export default function ProviderDashboard() {
         currency: 'NGN',
         payment_options: 'card, banktransfer, ussd',
         customer: { email: provider.email || 'guest@findonecampus.com' },
+        customization: {
+          title: "FindOneCampus",
+          description: "Pro Membership Upgrade",
+          logo: "https://res.cloudinary.com/drnrbfltr/image/upload/v1782561824/5b840287-582b-4833-a671-b7701bc87206.png"
+        },
         callback: function(data: any) {
           if (data.status === 'successful' || data.status === 'completed') {
             const verifyAndUpgrade = async () => {
@@ -110,6 +115,30 @@ export default function ProviderDashboard() {
     const url = `${window.location.origin}/providers/${provider.id}`
     navigator.clipboard.writeText(url)
     showToast('Profile link copied to clipboard!', 'success')
+  }
+
+  // NEW: Delete Profile Function
+  const handleDeleteProfile = async () => {
+    if (window.confirm('Are you absolutely sure? This will permanently remove your profile from the public directory. This action cannot be undone.')) {
+      const { error } = await supabase.from('providers').delete().eq('id', provider.id)
+      
+      if (error) {
+        // Fallback: If database blocks deletion due to past payments, anonymize the profile instead
+        await supabase.from('providers').update({ 
+          is_approved: false, 
+          full_name: 'Deleted User', 
+          bio: 'This profile has been deleted.', 
+          skills: [], 
+          whatsapp: '', 
+          social_links: {},
+          city: '',
+          country: ''
+        }).eq('id', provider.id)
+      }
+      
+      localStorage.removeItem('foc_provider')
+      router.push('/')
+    }
   }
 
   if (loading) return <div className="py-32 text-center">Loading dashboard...</div>
@@ -149,7 +178,7 @@ export default function ProviderDashboard() {
           <i className="fas fa-headset text-primary text-xl mt-1"></i>
           <div>
             <h3 className="font-semibold text-ink mb-1">Need Assistance with a Client?</h3>
-            <p className="text-sm text-muted">If you face any issues, complaints, or need mediation with a client, FindOneCampus is here to stand in the middle to avoid issues. WhatsApp us: +234 814 919 3063.</p>
+            <p className="text-sm text-muted">If you face any issues, complaints, or need mediation with a client, FindOneCampus is here to stand in the middle to avoid issues. WhatsApp us: <a href="https://wa.me/2349017380098" target="_blank" rel="noopener noreferrer" className="text-primary font-medium hover:underline">09017380098</a>.</p>
           </div>
         </div>
       </div>
@@ -210,9 +239,19 @@ export default function ProviderDashboard() {
 
       <form onSubmit={handleUpdate} className="premium-card p-8 space-y-6">
         <div className="grid sm:grid-cols-3 gap-5">
-          <div><label className="text-sm font-medium mb-2 block">Full Name</label><input value={form.full_name || ''} onChange={e => setForm({...form, full_name: e.target.value})} className="form-input" /></div>
-          <div><label className="text-sm font-medium mb-2 block">Category</label><select value={form.category || ''} onChange={e => setForm({...form, category: e.target.value})} className="form-input"><option value="" disabled>Select category</option><option>Technology & IT</option><option>Design & Creatives</option><option>Business & Finance</option><option>Media & Entertainment</option><option>Education & Training</option><option>Health & Wellness</option><option>Beauty & Fashion</option><option>Food & Catering</option><option>Events & Planning</option><option>Home & Repair Services</option><option>Logistics & Transport</option><option>Agriculture & Environment</option><option>Legal & Admin Services</option></select></div>
-          <div><label className="text-sm font-medium mb-2 block">Specific Profession</label><input value={form.profession || ''} onChange={e => setForm({...form, profession: e.target.value})} className="form-input" /></div>
+          {/* Added autoComplete attributes for Google Chrome suggestions */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">Full Name</label>
+            <input value={form.full_name || ''} onChange={e => setForm({...form, full_name: e.target.value})} className="form-input" name="name" id="name" autoComplete="name" />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Category</label>
+            <select value={form.category || ''} onChange={e => setForm({...form, category: e.target.value})} className="form-input"><option value="" disabled>Select category</option><option>Technology & IT</option><option>Design & Creatives</option><option>Business & Finance</option><option>Media & Entertainment</option><option>Education & Training</option><option>Health & Wellness</option><option>Beauty & Fashion</option><option>Food & Catering</option><option>Events & Planning</option><option>Home & Repair Services</option><option>Logistics & Transport</option><option>Agriculture & Environment</option><option>Legal & Admin Services</option></select>
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Specific Profession</label>
+            <input value={form.profession || ''} onChange={e => setForm({...form, profession: e.target.value})} className="form-input" name="organization-title" id="organization-title" autoComplete="organization-title" />
+          </div>
         </div>
 
         <div><label className="text-sm font-medium mb-2 block">Short Bio</label><textarea rows={3} value={form.bio || ''} onChange={e => setForm({...form, bio: e.target.value})} className="form-input"></textarea></div>
@@ -228,14 +267,29 @@ export default function ProviderDashboard() {
         <div><label className="text-sm font-medium mb-2 block">Skills (comma separated)</label><input value={form.skills || ''} onChange={e => setForm({...form, skills: e.target.value})} className="form-input" /></div>
 
         <div className="grid sm:grid-cols-2 gap-5">
-          <div><label className="text-sm font-medium mb-2 block">Highest Education Level</label><input value={form.education_level || ''} onChange={e => setForm({...form, education_level: e.target.value})} className="form-input" /></div>
-          <div><label className="text-sm font-medium mb-2 block">School Attended</label><input value={form.school || ''} onChange={e => setForm({...form, school: e.target.value})} className="form-input" /></div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Highest Education Level</label>
+            <input value={form.education_level || ''} onChange={e => setForm({...form, education_level: e.target.value})} className="form-input" />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">School Attended</label>
+            <input value={form.school || ''} onChange={e => setForm({...form, school: e.target.value})} className="form-input" name="organization" id="organization" autoComplete="organization" />
+          </div>
         </div>
 
         <div className="grid sm:grid-cols-3 gap-5">
-          <div><label className="text-sm font-medium mb-2 block">WhatsApp</label><input value={form.whatsapp || ''} onChange={e => setForm({...form, whatsapp: e.target.value})} className="form-input" /></div>
-          <div><label className="text-sm font-medium mb-2 block">Country</label><input value={form.country || ''} onChange={e => setForm({...form, country: e.target.value})} className="form-input" /></div>
-          <div><label className="text-sm font-medium mb-2 block">City</label><input value={form.city || ''} onChange={e => setForm({...form, city: e.target.value})} className="form-input" /></div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">WhatsApp</label>
+            <input value={form.whatsapp || ''} onChange={e => setForm({...form, whatsapp: e.target.value})} className="form-input" name="tel" id="tel" autoComplete="tel" />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Country</label>
+            <input value={form.country || ''} onChange={e => setForm({...form, country: e.target.value})} className="form-input" name="country-name" id="country-name" autoComplete="country-name" />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">City</label>
+            <input value={form.city || ''} onChange={e => setForm({...form, city: e.target.value})} className="form-input" name="address-level2" id="address-level2" autoComplete="address-level2" />
+          </div>
         </div>
 
         <div className="pt-4 border-t border-black/5">
@@ -253,6 +307,15 @@ export default function ProviderDashboard() {
         </div>
 
         <button type="submit" className="btn-primary w-full justify-center !py-4">Save Changes</button>
+
+        {/* NEW: Danger Zone */}
+        <div className="pt-6 mt-6 border-t border-red-100">
+          <h3 className="text-sm font-semibold text-red-600 mb-2">Danger Zone</h3>
+          <p className="text-xs text-muted mb-4">Permanently delete your provider profile from FindOneCampus. This action cannot be undone.</p>
+          <button type="button" onClick={handleDeleteProfile} className="px-4 py-2 text-xs text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg font-medium transition">
+            <i className="fas fa-trash-alt mr-2"></i> Delete My Profile
+          </button>
+        </div>
       </form>
 
       <style>{`@keyframes slideUp { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }`}</style>

@@ -1,9 +1,14 @@
+// app/books/[id]/page.tsx
 'use client'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { generateReference } from '@/lib/paystack'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import dynamic from 'next/dynamic'
+
+// Dynamically load the universal PDF Modal
+const PdfModal = dynamic(() => import('@/components/PdfModal'), { ssr: false })
 
 export default function AboutBookPage() {
   const params = useParams()
@@ -66,15 +71,16 @@ export default function AboutBookPage() {
 
   return (
     <div className="relative overflow-hidden py-32 px-6 lg:px-10">
+      
+      {/* --- UNIVERSAL PDF MODAL --- */}
       {isReaderOpen && (
-        <div className="fixed inset-0 bg-black/95 z-[200] flex flex-col p-2 md:p-6">
-          <div className="flex justify-between items-center mb-2 md:mb-4 px-2">
-            <h3 className="text-white serif text-lg md:text-2xl">{book.title}</h3>
-            <button onClick={() => setIsReaderOpen(false)} className="text-white w-9 h-9 md:w-10 md:h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition"><i className="fas fa-times text-lg md:text-xl"></i></button>
-          </div>
-          <div className="flex-1 bg-white rounded-xl md:rounded-2xl overflow-hidden"><iframe src={book.download_url} className="w-full h-full" title={book.title}></iframe></div>
-        </div>
+        <PdfModal 
+          url={book.download_url} 
+          title={book.title} 
+          onClose={() => setIsReaderOpen(false)} 
+        />
       )}
+
       {toast && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] animate-[slideUp_0.3s_ease]">
           <div className="flex items-center gap-3 px-6 py-4 rounded-full shadow-2xl text-white text-sm font-medium bg-green-600"><i className="fas fa-check-circle text-lg"></i><span>{toast}</span></div>

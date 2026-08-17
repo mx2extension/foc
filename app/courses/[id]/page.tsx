@@ -1,9 +1,14 @@
+// app/courses/[id]/page.tsx
 'use client'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { generateReference } from '@/lib/paystack'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import dynamic from 'next/dynamic'
+
+// Dynamically load the universal PDF Modal
+const PdfModal = dynamic(() => import('@/components/PdfModal'), { ssr: false })
 
 export default function AboutCoursePage() {
   const params = useParams()
@@ -15,6 +20,7 @@ export default function AboutCoursePage() {
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState<string | null>(null)
   const [paying, setPaying] = useState(false)
+  const [isPdfOpen, setIsPdfOpen] = useState(false) // State for course PDF materials
 
   useEffect(() => { const r = localStorage.getItem('foc_reader'); if (r) try { setReader(JSON.parse(r)) } catch (e) {} }, [])
   useEffect(() => { if (!courseId) return; const f = async () => { const { data } = await supabase.from('courses').select('*').eq('id', courseId).single(); setCourse(data); setLoading(false) }; f() }, [courseId])
@@ -70,6 +76,17 @@ export default function AboutCoursePage() {
 
   return (
     <div className="relative overflow-hidden py-32 px-6 lg:px-10">
+      
+      {/* --- UNIVERSAL PDF MODAL --- */}
+      {/* If you add a 'pdf_url' to your course database, this will open it perfectly on mobile */}
+      {isPdfOpen && (
+        <PdfModal 
+          url={course.pdf_url} 
+          title={`${course.title} - Materials`} 
+          onClose={() => setIsPdfOpen(false)} 
+        />
+      )}
+
       {toast && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] animate-[slideUp_0.3s_ease]">
           <div className="flex items-center gap-3 px-6 py-4 rounded-full shadow-2xl text-white text-sm font-medium bg-green-600"><i className="fas fa-check-circle text-lg"></i><span>{toast}</span></div>
@@ -104,6 +121,14 @@ export default function AboutCoursePage() {
             ) : (
               <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl mb-10 bg-neutral-800 flex flex-col items-center justify-center text-white p-8 text-center"><i className="fas fa-lock text-4xl mb-4 text-primary"></i><h3 className="serif text-2xl mb-2">Premium Content</h3><p className="text-white/70 text-sm max-w-md">Enroll in this course to unlock the video lessons and full curriculum.</p></div>
             )}
+            
+            {/* Example button: If the course has a PDF, users can click this to open the PdfModal */}
+            {(isEnrolled || course.price === 0) && course.pdf_url && (
+              <button onClick={() => setIsPdfOpen(true)} className="btn-primary mb-10 !py-3 !px-6 text-sm">
+                <i className="fas fa-file-pdf"></i> View Course PDF
+              </button>
+            )}
+
             <p className="text-lg text-muted leading-relaxed mb-8 font-light">{course.description}</p>
             {course.about && (<div className="premium-card p-8 mb-10"><h2 className="serif text-2xl mb-4">About this Course</h2><div className="prose prose-lg max-w-none text-ink/80 leading-relaxed space-y-4">{course.about.split('\n').map((p: string, i: number) => <p key={i}>{p}</p>)}</div></div>)}
             <div className="border-t border-black/5 pt-8">

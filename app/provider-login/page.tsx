@@ -15,32 +15,32 @@ export default function ProviderLogin() {
     setLoading(true)
     setError('')
     
-    // 1. Check if email exists in the providers table
     const { data, error: dbError } = await supabase
       .from('providers')
       .select('id, email, full_name')
-      .eq('email', email.toLowerCase())
+      .ilike('email', email.trim()) 
       .single()
 
     if (data) {
-      // 2. If found, save their info to localStorage to keep them logged in
       localStorage.setItem('foc_provider', JSON.stringify(data))
       router.push('/dashboard/provider')
     } else {
-      // 3. If not found, tell them to register
       setError('You are not registered as a provider yet. Please sign up first.')
     }
     setLoading(false)
   }
 
   return (
-    <div className="max-w-md mx-auto px-6 py-32">
-      <div className="text-center mb-12">
-        <h1 className="serif text-4xl mb-3">Provider <span className="gradient-text">Login</span></h1>
-        <p className="text-muted">Enter your registered email to access your dashboard.</p>
+    <div className="max-w-md mx-auto px-6 py-32 text-center">
+      <div className="inline-flex items-center gap-2.5 text-xs tracking-[0.25em] uppercase text-primary font-medium mb-6">
+        <span className="w-6 h-px bg-primary"></span>
+        FindOneCampus
+        <span className="w-6 h-px bg-primary"></span>
       </div>
+      <h1 className="serif text-4xl md:text-5xl mb-4">Provider <span className="gradient-text">Login</span></h1>
+      <p className="text-muted mb-12">Enter your registered email to access your dashboard.</p>
 
-      <form onSubmit={handleLogin} className="premium-card p-8 space-y-6">
+      <form onSubmit={handleLogin} className="premium-card p-8 space-y-6 text-left">
         <div>
           <label className="text-sm font-medium mb-2 block">Email Address</label>
           <input 
@@ -49,7 +49,10 @@ export default function ProviderLogin() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="form-input" 
-            placeholder="you@email.com" 
+            placeholder="you@email.com"
+            name="email"
+            id="email"
+            autoComplete="email"
           />
         </div>
 

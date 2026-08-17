@@ -27,17 +27,52 @@ const instrumentSerif = Instrument_Serif({
 })
 
 export const metadata = {
-  title: 'FindOneCampus — The World Is One Big Campus',
-  description: 'The world is one giant campus where everyone is learning, building, creating, hiring, serving, teaching and growing.',
+  title: {
+    default: 'FindOneCampus — The World Is One Big Campus',
+    template: '%s | FindOneCampus'
+  },
+  description: 'The world is one giant campus where everyone is learning, building, creating, hiring, serving, teaching and growing. Find trusted professionals, books, courses, and opportunities globally.',
   metadataBase: new URL('https://findoncampus.com'),
-  alternates: { canonical: '/' },
-  icons: { icon: '/favicon.png' },
+  alternates: {
+    canonical: '/',
+    languages: {
+      'en': '/',
+      'x-default': '/',
+    },
+  },
+  robots: {
+    index: true,      
+    follow: true,      
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  icons: {
+    icon: [{ url: '/icon.png', type: 'image/png' }],
+    shortcut: ['/icon.png'],
+    apple: [{ url: '/icon.png' }],
+  },
+  keywords: [
+    'FindOneCampus', 
+    'global professionals', 
+    'freelance directory', 
+    'digital marketplace', 
+    'online courses', 
+    'ebooks', 
+    'social media growth', 
+    'hire professionals', 
+    'find service providers', 
+    'worldwide opportunities'
+  ],
   openGraph: {
     title: 'FindOneCampus — The World Is One Big Campus',
     description: 'The world is one giant campus where everyone is learning, building, creating, hiring, serving, teaching and growing.',
     url: 'https://findoncampus.com',
     siteName: 'FindOneCampus',
-    images: [{ url: '/favicon.png', width: 1200, height: 630, alt: 'FindOneCampus' }],
+    images: [{ url: '/icon.png', width: 1200, height: 630, alt: 'FindOneCampus' }],
     locale: 'en_US',
     type: 'website',
   },
@@ -45,7 +80,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'FindOneCampus — The World Is One Big Campus',
     description: 'The world is one giant campus where everyone is learning, building, creating, hiring, serving, teaching and growing.',
-    images: ['/favicon.png'],
+    images: ['/icon.png'],
   },
 }
 
@@ -64,7 +99,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="font-sans">
         <Script src="https://js.paystack.co/v1/inline.js" strategy="beforeInteractive" />
-        {/* Added Flutterwave Script */}
+        {/* Flutterwave Script */}
         <Script src="https://checkout.flutterwave.com/v3.js" strategy="beforeInteractive" />
         
         <ScrollReveal />
