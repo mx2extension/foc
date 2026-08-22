@@ -7,8 +7,8 @@ import ProviderCard from '@/components/ProviderCard'
 const CATEGORIES = [
   'Technology & IT', 'Design & Creatives', 'Business & Finance', 'Media & Entertainment',
   'Education & Training', 'Health & Wellness', 'Beauty & Fashion', 'Food & Catering',
-  'Events & Planning', 'Home & Repair Services', 'Logistics & Transport',
-  'Agriculture & Environment', 'Legal & Admin Services'
+  'Events & Planning', 'Home & Repair Services', 'Construction & Engineering', 'Real Estate',
+  'Logistics & Transport', 'Agriculture & Environment', 'Legal & Admin Services'
 ]
 
 function ProvidersContent() {

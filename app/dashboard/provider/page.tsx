@@ -117,13 +117,11 @@ export default function ProviderDashboard() {
     showToast('Profile link copied to clipboard!', 'success')
   }
 
-  // NEW: Delete Profile Function
   const handleDeleteProfile = async () => {
     if (window.confirm('Are you absolutely sure? This will permanently remove your profile from the public directory. This action cannot be undone.')) {
       const { error } = await supabase.from('providers').delete().eq('id', provider.id)
       
       if (error) {
-        // Fallback: If database blocks deletion due to past payments, anonymize the profile instead
         await supabase.from('providers').update({ 
           is_approved: false, 
           full_name: 'Deleted User', 
@@ -239,14 +237,31 @@ export default function ProviderDashboard() {
 
       <form onSubmit={handleUpdate} className="premium-card p-8 space-y-6">
         <div className="grid sm:grid-cols-3 gap-5">
-          {/* Added autoComplete attributes for Google Chrome suggestions */}
           <div>
             <label className="text-sm font-medium mb-2 block">Full Name</label>
             <input value={form.full_name || ''} onChange={e => setForm({...form, full_name: e.target.value})} className="form-input" name="name" id="name" autoComplete="name" />
           </div>
           <div>
             <label className="text-sm font-medium mb-2 block">Category</label>
-            <select value={form.category || ''} onChange={e => setForm({...form, category: e.target.value})} className="form-input"><option value="" disabled>Select category</option><option>Technology & IT</option><option>Design & Creatives</option><option>Business & Finance</option><option>Media & Entertainment</option><option>Education & Training</option><option>Health & Wellness</option><option>Beauty & Fashion</option><option>Food & Catering</option><option>Events & Planning</option><option>Home & Repair Services</option><option>Logistics & Transport</option><option>Agriculture & Environment</option><option>Legal & Admin Services</option></select>
+            <select value={form.category || ''} onChange={e => setForm({...form, category: e.target.value})} className="form-input">
+              <option value="" disabled>Select category</option>
+              <option>Technology & IT</option>
+              <option>Design & Creatives</option>
+              <option>Business & Finance</option>
+              <option>Media & Entertainment</option>
+              <option>Education & Training</option>
+              <option>Health & Wellness</option>
+              <option>Beauty & Fashion</option>
+              <option>Food & Catering</option>
+              <option>Events & Planning</option>
+              <option>Home & Repair Services</option>
+              <option>Logistics & Transport</option>
+              <option>Agriculture & Environment</option>
+              <option>Legal & Admin Services</option>
+              <option>Construction & Real Estate</option>
+              <option>Construction & Engineering</option>
+              <option>Real Estate</option>
+            </select>
           </div>
           <div>
             <label className="text-sm font-medium mb-2 block">Specific Profession</label>
@@ -308,7 +323,6 @@ export default function ProviderDashboard() {
 
         <button type="submit" className="btn-primary w-full justify-center !py-4">Save Changes</button>
 
-        {/* NEW: Danger Zone */}
         <div className="pt-6 mt-6 border-t border-red-100">
           <h3 className="text-sm font-semibold text-red-600 mb-2">Danger Zone</h3>
           <p className="text-xs text-muted mb-4">Permanently delete your provider profile from FindOneCampus. This action cannot be undone.</p>

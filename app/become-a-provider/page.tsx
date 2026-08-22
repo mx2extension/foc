@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 const CATEGORIES = [
   'Technology & IT', 'Design & Creatives', 'Business & Finance', 'Media & Entertainment',
   'Education & Training', 'Health & Wellness', 'Beauty & Fashion', 'Food & Catering',
-  'Events & Planning', 'Home & Repair Services', 'Logistics & Transport',
+  'Events & Planning', 'Home & Repair Services', 'Construction & Engineering', 'Logistics & Transport',
   'Agriculture & Environment', 'Legal & Admin Services'
 ];
 
