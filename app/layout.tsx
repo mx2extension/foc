@@ -28,10 +28,10 @@ const instrumentSerif = Instrument_Serif({
 
 export const metadata = {
   title: {
-    default: 'FindOneCampus — The World Is One Big Campus',
+    default: 'FindOneCampus (FindOnCampus) — The World Is One Big Campus',
     template: '%s | FindOneCampus'
   },
-  description: 'The world is one giant campus where everyone is learning, building, creating, hiring, serving, teaching and growing. Find trusted professionals, books, courses, and opportunities globally.',
+  description: 'FindOneCampus (also known as FindOnCampus) is the global digital marketplace where you can find trusted professionals, freelance service providers, online courses, and ebooks worldwide.',
   metadataBase: new URL('https://findoncampus.com'),
   alternates: {
     canonical: '/',
@@ -51,12 +51,15 @@ export const metadata = {
     },
   },
   icons: {
-    icon: [{ url: '/favicon.png', type: 'image/png' }],
+    icon: [{ url: '/favicon.png', type: 'image/png', sizes: '32x32' }],
     shortcut: ['/favicon.png'],
-    apple: [{ url: '/favicon.png' }],
+    apple: [{ url: '/favicon.png', type: 'image/png', sizes: '180x180' }],
   },
   keywords: [
-    'FindOneCampus', 
+    'FindOneCampus',
+    'FindOnCampus',
+    'findonecampus.com',
+    'findoncampus.com',
     'global professionals', 
     'freelance directory', 
     'digital marketplace', 

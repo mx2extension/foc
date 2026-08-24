@@ -23,6 +23,26 @@ export default async function Home() {
     return bScore - aScore
   }).slice(0, 6)
 
+  // 4. Hardcoded FAQs for the homepage preview
+  const faqs = [
+    {
+      question: "What is FindOneCampus?",
+      answer: "FindOneCampus is a global platform connecting learners, professionals, and creators. We make it easy to find experts, books, courses, and opportunities in one place."
+    },
+    {
+      question: "How do I become a provider?",
+      answer: "You can become a provider by clicking the 'Become a provider' button and filling out the application. Once approved, you can start offering your services, courses, or resources."
+    },
+    {
+      question: "Is FindOneCampus free to use?",
+      answer: "Browsing the campus, searching for providers, and accessing community resources is completely free. Certain premium courses or services may have fees set by individual providers."
+    },
+    {
+      question: "How does verification work?",
+      answer: "Our verification process ensures that providers are real, trustworthy professionals. Verified badges are given to providers who have completed our identity and credentials check."
+    }
+  ]
+
   return (
     <>
       {/* HERO WITH FULL-COVER LOGO BACKGROUND WATERMARK */}
@@ -270,6 +290,48 @@ export default async function Home() {
           {latestNews.length === 0 && (
             <div className="text-center py-20 text-muted">No news articles yet.</div>
           )}
+        </div>
+      </section>
+
+      {/* FAQ SECTION */}
+      <section id="faq" className="py-32 relative overflow-hidden">
+        <div className="orb" style={{ width: '500px', height: '500px', background: 'rgba(193,18,31,0.05)', top: '10%', left: '-100px' }}></div>
+
+        <div className="relative max-w-4xl mx-auto px-6 lg:px-10 z-10">
+          <div className="text-center mb-16">
+            <div className="section-label justify-center mb-6 inline-flex reveal">Questions, answered</div>
+            <h2 className="serif mb-6 reveal reveal-delay-1" style={{ fontSize: 'clamp(40px, 6vw, 72px)', lineHeight: 1, letterSpacing: '-0.02em' }}>
+              Frequently <span className="serif-italic gradient-text">Asked.</span>
+            </h2>
+            <p className="text-lg text-muted max-w-2xl mx-auto reveal reveal-delay-2">
+              Everything you might want to know about FindOneCampus — and if it's not here, the community has you covered.
+            </p>
+          </div>
+
+          <div className="space-y-4 reveal reveal-delay-2">
+            {faqs.map((faq, i: number) => (
+              <details
+                key={i}
+                className={`group premium-card p-0 overflow-hidden reveal reveal-delay-${(i % 3) + 1}`}
+              >
+                <summary className="flex items-center justify-between gap-4 cursor-pointer list-none p-6 lg:p-8 select-none">
+                  <span className="serif text-xl lg:text-2xl pr-4">{faq.question}</span>
+                  <span className="shrink-0 w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center transition-transform duration-300 group-open:rotate-45">
+                    <i className="fas fa-plus text-sm"></i>
+                  </span>
+                </summary>
+                <div className="px-6 lg:px-8 pb-6 lg:pb-8 -mt-2 text-muted leading-relaxed text-lg">
+                  {faq.answer}
+                </div>
+              </details>
+            ))}
+          </div>
+
+          <div className="text-center mt-12 reveal reveal-delay-3">
+            <Link href="/faq" className="btn-secondary !py-3 !px-5 text-sm whitespace-nowrap">
+              View more FAQs <i className="fas fa-arrow-right text-xs"></i>
+            </Link>
+          </div>
         </div>
       </section>
 
