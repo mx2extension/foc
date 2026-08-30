@@ -254,14 +254,14 @@ export default function Hero() {
                 <span>Browse Books</span>
               </Link>
 
-              {/* SMM BUTTON */}
-              <button 
-                onClick={() => window.dispatchEvent(new Event('toggle-smm-panel'))}
+              {/* SMM BUTTON - Linked to dedicated page */}
+              <Link 
+                href="/social-growth"
                 className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm text-white bg-gradient-to-r from-accent to-primary shadow-lg transition-all duration-300 hover:-translate-y-0.5 animate-glow-pulse"
               >
                 <i className="fas fa-rocket animate-buzz"></i> 
                 <span>Boost Social Media Followers</span>
-              </button>
+              </Link>
             </div>
           </div>
         </div>
