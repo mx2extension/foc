@@ -13,7 +13,6 @@ export default function SocialGrowthPanel() {
   const [toast, setToast] = useState('')
   const [successOrder, setSuccessOrder] = useState('')
   const [waConfirmLink, setWaConfirmLink] = useState('')
-  const [showBalanceWarning, setShowBalanceWarning] = useState(false)
 
   // Form state
   const [email, setEmail] = useState('')
@@ -91,15 +90,7 @@ export default function SocialGrowthPanel() {
     return isNaN(totalNGN) ? 0 : totalNGN
   }
 
-  // Calculate the base cost to check against our RSS balance
-  const calculateBaseCost = () => {
-    if (!selectedService || !quantity) return 0
-    const baseCostNGN = (parseFloat(selectedService.rate) / 1000) * quantity
-    return isNaN(baseCostNGN) ? 0 : baseCostNGN
-  }
-
   const totalCost = calculateTotal()
-  const baseCost = calculateBaseCost()
 
   const triggerFallback = () => {
     // Pre-format the WhatsApp message for manual bank transfer
@@ -179,12 +170,8 @@ export default function SocialGrowthPanel() {
       return
     }
 
-    // BALANCE CHECK: If base cost is greater than our RSS balance, show warning
-    if (baseCost > balance) {
-      setShowBalanceWarning(true)
-      return
-    }
-
+    // Proceed directly to Flutterwave. 
+    // The backend will safely queue the order if the system balance is low.
     initiateFlutterwave()
   }
 
@@ -250,6 +237,12 @@ export default function SocialGrowthPanel() {
     }
   }
 
+  // Helper to copy tracking ID to clipboard
+  const handleCopyTrackingId = () => {
+    navigator.clipboard.writeText(successOrder)
+    showToast('Tracking ID Copied!')
+  }
+
   return (
     <>
       {/* Floating Button (Left Side) */}
@@ -282,7 +275,7 @@ export default function SocialGrowthPanel() {
                 <div className="font-bold text-accent text-sm tracking-widest">••••••</div>
               </div>
               <button 
-                onClick={() => { setIsOpen(false); setShowBalanceWarning(false) }}
+                onClick={() => setIsOpen(false)}
                 className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
                 aria-label="Close Panel"
               >
@@ -293,195 +286,179 @@ export default function SocialGrowthPanel() {
 
           {/* Body */}
           <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-paper">
-            
-            {/* BALANCE WARNING MODAL */}
-            {showBalanceWarning ? (
-              <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg space-y-3">
-                <div className="flex items-center gap-2 text-amber-800 font-semibold text-sm">
-                  <i className="fas fa-triangle-exclamation"></i> System Balance Low
+            {/* Success Order Ticket Display & WhatsApp DM */}
+            {successOrder && (
+              <div className="bg-green-50 border border-green-200 p-3 rounded-lg text-center space-y-3">
+                <div>
+                  <i className="fas fa-check-circle text-green-600 text-lg mb-1"></i>
+                  <p className="text-xs text-green-800 font-semibold">Payment Successful!</p>
                 </div>
-                <p className="text-[11px] text-amber-700 leading-relaxed">
-                  Our automated processing balance is currently low. If you proceed with payment, your order will be queued and may take up to <strong>48 hours (for NGN payments)</strong> or <strong>several days (for international payments)</strong> to deliver as we wait for funds to settle.
-                </p>
-                <p className="text-[11px] text-amber-700 leading-relaxed">
-                  If you want your order to start instantly, please click the button below to contact us on WhatsApp for a fast-track manual arrangement.
-                </p>
                 
-                <a 
-                  href={`https://wa.me/2349017380098?text=${encodeURIComponent(`Hello MX2ViralWorld, I want to fast-track this order:\n\nService: ${selectedService?.name}\nLink: ${link}\nQuantity: ${quantity}\nTotal: ₦${totalCost.toLocaleString()}\n\nMy balance is low, how can we do this instantly?`)}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full py-2.5 text-xs text-white bg-[#25D366] rounded-lg font-medium hover:opacity-90 transition"
-                >
-                  <i className="fab fa-whatsapp text-base"></i> Chat to Fast-Track
-                </a>
+                <div>
+                  <p className="text-[11px] text-green-700 mb-1.5">Your Order Tracking ID is:</p>
+                  <div className="flex items-center justify-between bg-white p-2 rounded-md border border-green-300">
+                    <span className="font-bold text-green-900 text-sm tracking-wider">{successOrder}</span>
+                    <button 
+                      onClick={handleCopyTrackingId}
+                      className="bg-green-600 text-white px-3 py-1.5 rounded text-[10px] font-bold hover:bg-green-700 transition flex items-center gap-1"
+                    >
+                      <i className="fas fa-copy"></i> Copy
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-red-500 font-medium mt-1.5 animate-pulse">
+                    ⚠️ Make sure to copy and save this ID!
+                  </p>
+                </div>
 
-                <button 
-                  onClick={() => { setShowBalanceWarning(false); initiateFlutterwave() }} 
-                  className="w-full py-2.5 text-xs text-amber-800 bg-amber-100 hover:bg-amber-200 rounded-lg font-medium transition"
-                >
-                  Proceed & Queue (Wait 48hrs+)
-                </button>
+                <div className="pt-2 border-t border-green-200">
+                  <p className="text-[10px] text-green-600 mb-2">Click below to send us a quick DM confirming your order:</p>
+                  <a 
+                    href={waConfirmLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full py-2.5 text-xs text-white bg-[#25D366] rounded-lg font-medium hover:opacity-90 transition"
+                  >
+                    <i className="fab fa-whatsapp text-base"></i> Send DM to Confirm
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {loading && services.length === 0 ? (
+              <div className="text-center py-6 text-muted">
+                <i className="fas fa-spinner fa-spin text-xl mb-2"></i>
+                <p className="text-xs">Loading services...</p>
               </div>
             ) : (
-              <>
-                {/* Success Order Ticket Display & WhatsApp DM */}
-                {successOrder && (
-                  <div className="bg-green-50 border border-green-200 p-3 rounded-lg text-center">
-                    <i className="fas fa-check-circle text-green-600 text-lg mb-1"></i>
-                    <p className="text-xs text-green-800 font-medium">Payment Successful!</p>
-                    <p className="text-[11px] text-green-700 mt-1">Your Order Ticket ID is: <span className="font-bold text-green-900">{successOrder}</span></p>
-                    <p className="text-[10px] text-green-600 mt-1">Save this ID to check your status below.</p>
-                    
-                    <a 
-                      href={waConfirmLink} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 w-full py-2.5 mt-3 text-xs text-white bg-[#25D366] rounded-lg font-medium hover:opacity-90 transition"
-                    >
-                      <i className="fab fa-whatsapp text-base"></i> Send DM to Confirm Order
-                    </a>
-                    <p className="text-[9px] text-green-600 mt-2">Click the button above to send us a quick DM with your ticket details.</p>
-                  </div>
-                )}
-
-                {loading && services.length === 0 ? (
-                  <div className="text-center py-6 text-muted">
-                    <i className="fas fa-spinner fa-spin text-xl mb-2"></i>
-                    <p className="text-xs">Loading services...</p>
-                  </div>
-                ) : (
-                  <form onSubmit={handleOrder} className="space-y-3">
-                    <div>
-                      <label className="text-[11px] font-medium text-muted block mb-1">Your Email</label>
-                      <input 
-                        type="email" 
-                        value={email} 
-                        onChange={(e) => setEmail(e.target.value)} 
-                        required
-                        placeholder="you@email.com"
-                        className="form-input !py-2 !text-xs"
-                      />
-                    </div>
-
-                    {/* Category Dropdown */}
-                    <div>
-                      <label className="text-[11px] font-medium text-muted block mb-1">Service Type (Category)</label>
-                      <select 
-                        value={selectedCategory} 
-                        onChange={(e) => {
-                          setSelectedCategory(e.target.value)
-                          setServiceId('') // Reset service when category changes
-                        }}
-                        className="form-input !py-2 !text-xs"
-                      >
-                        <option value="">All Categories</option>
-                        {categories.map((cat, i) => (
-                          <option key={i} value={cat}>{cat}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] font-medium text-muted block mb-1">Select Service</label>
-                      <select 
-                        value={serviceId} 
-                        onChange={(e) => {
-                          setServiceId(e.target.value)
-                          const svc = services.find((s: any) => String(s.service) === e.target.value)
-                          if (svc) {
-                            const apiMin = parseInt(svc.min) || 500
-                            setQuantity(Math.max(500, apiMin))
-                          }
-                        }}
-                        required
-                        className="form-input !py-2 !text-xs"
-                      >
-                        <option value="">Choose a service...</option>
-                        {filteredServices.map((svc: any) => {
-                          const markup = getMarkup(svc.name)
-                          return (
-                            <option key={svc.service} value={svc.service}>
-                              {svc.name} (₦{(parseFloat(svc.rate) * markup).toFixed(2)}/1000)
-                            </option>
-                          )
-                        })}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] font-medium text-muted block mb-1">Link</label>
-                      <input 
-                        type="text" 
-                        value={link} 
-                        onChange={(e) => setLink(e.target.value)} 
-                        required
-                        placeholder={getLinkPlaceholder(selectedService?.name)}
-                        className="form-input !py-2 !text-xs"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] font-medium text-muted block mb-1">
-                        Quantity 
-                        <span className="text-muted/70 ml-1">(Min: 500, Max: 20,000)</span>
-                      </label>
-                      <input 
-                        type="number" 
-                        value={quantity} 
-                        onChange={(e) => setQuantity(Number(e.target.value))} 
-                        required
-                        min={500}
-                        max={20000}
-                        className="form-input !py-2 !text-xs"
-                      />
-                    </div>
-
-                    {serviceId && (
-                      <div className="bg-white p-2.5 rounded-lg border border-black/5 flex justify-between items-center">
-                        <span className="text-xs text-muted">Total Cost:</span>
-                        <span className="serif text-xl text-primary">₦{totalCost.toLocaleString()}</span>
-                      </div>
-                    )}
-
-                    <button 
-                      type="submit" 
-                      disabled={loading || !serviceId} 
-                      className="btn-primary w-full justify-center !py-2.5 text-xs disabled:opacity-50"
-                    >
-                      {loading ? 'Processing...' : <><i className="fas fa-lock mr-1.5"></i> Pay & Place Order</>}
-                    </button>
-                  </form>
-                )}
-
-                {/* Order Status Checker */}
-                <div className="pt-3 border-t border-black/10">
-                  <label className="text-[11px] font-medium text-muted block mb-1.5">Check Order Status</label>
-                  <div className="flex gap-2">
-                    <input 
-                      type="text" 
-                      value={orderId} 
-                      onChange={(e) => setOrderId(e.target.value)} 
-                      placeholder="Enter Ticket/Order ID"
-                      className="form-input !py-2 !text-xs flex-1"
-                    />
-                    <button onClick={handleCheckStatus} className="btn-secondary !py-2 !px-3 text-xs">
-                      Check
-                    </button>
-                  </div>
+              <form onSubmit={handleOrder} className="space-y-3">
+                <div>
+                  <label className="text-[11px] font-medium text-muted block mb-1">Your Email</label>
+                  <input 
+                    type="email" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                    required
+                    placeholder="you@email.com"
+                    className="form-input !py-2 !text-xs"
+                  />
                 </div>
 
-                {/* WhatsApp Support Button */}
-                <a 
-                  href="https://wa.me/2349017380098?text=Hello%20MX2ViralWorld,%20I%20need%20assistance" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full py-2.5 mt-2 text-xs text-white bg-[#25D366] rounded-lg font-medium hover:opacity-90 transition"
+                {/* Category Dropdown */}
+                <div>
+                  <label className="text-[11px] font-medium text-muted block mb-1">Service Type (Category)</label>
+                  <select 
+                    value={selectedCategory} 
+                    onChange={(e) => {
+                      setSelectedCategory(e.target.value)
+                      setServiceId('') // Reset service when category changes
+                    }}
+                    className="form-input !py-2 !text-xs"
+                  >
+                    <option value="">All Categories</option>
+                    {categories.map((cat, i) => (
+                      <option key={i} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-medium text-muted block mb-1">Select Service</label>
+                  <select 
+                    value={serviceId} 
+                    onChange={(e) => {
+                      setServiceId(e.target.value)
+                      const svc = services.find((s: any) => String(s.service) === e.target.value)
+                      if (svc) {
+                        const apiMin = parseInt(svc.min) || 500
+                        setQuantity(Math.max(500, apiMin))
+                      }
+                    }}
+                    required
+                    className="form-input !py-2 !text-xs"
+                  >
+                    <option value="">Choose a service...</option>
+                    {filteredServices.map((svc: any) => {
+                      const markup = getMarkup(svc.name)
+                      return (
+                        <option key={svc.service} value={svc.service}>
+                          {svc.name} (₦{(parseFloat(svc.rate) * markup).toFixed(2)}/1000)
+                        </option>
+                      )
+                    })}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-medium text-muted block mb-1">Link</label>
+                  <input 
+                    type="text" 
+                    value={link} 
+                    onChange={(e) => setLink(e.target.value)} 
+                    required
+                    placeholder={getLinkPlaceholder(selectedService?.name)}
+                    className="form-input !py-2 !text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-medium text-muted block mb-1">
+                    Quantity 
+                    <span className="text-muted/70 ml-1">(Min: 500, Max: 20,000)</span>
+                  </label>
+                  <input 
+                    type="number" 
+                    value={quantity} 
+                    onChange={(e) => setQuantity(Number(e.target.value))} 
+                    required
+                    min={500}
+                    max={20000}
+                    className="form-input !py-2 !text-xs"
+                  />
+                </div>
+
+                {serviceId && (
+                  <div className="bg-white p-2.5 rounded-lg border border-black/5 flex justify-between items-center">
+                    <span className="text-xs text-muted">Total Cost:</span>
+                    <span className="serif text-xl text-primary">₦{totalCost.toLocaleString()}</span>
+                  </div>
+                )}
+
+                <button 
+                  type="submit" 
+                  disabled={loading || !serviceId} 
+                  className="btn-primary w-full justify-center !py-2.5 text-xs disabled:opacity-50"
                 >
-                  <i className="fab fa-whatsapp text-base"></i> Chat for Support / Funding
-                </a>
-              </>
+                  {loading ? 'Processing...' : <><i className="fas fa-lock mr-1.5"></i> Pay & Place Order</>}
+                </button>
+              </form>
             )}
+
+            {/* Order Status Checker */}
+            <div className="pt-3 border-t border-black/10">
+              <label className="text-[11px] font-medium text-muted block mb-1.5">Check Order Status</label>
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  value={orderId} 
+                  onChange={(e) => setOrderId(e.target.value)} 
+                  placeholder="Enter Ticket/Order ID"
+                  className="form-input !py-2 !text-xs flex-1"
+                />
+                <button onClick={handleCheckStatus} className="btn-secondary !py-2 !px-3 text-xs">
+                  Check
+                </button>
+              </div>
+            </div>
+
+            {/* WhatsApp Support Button */}
+            <a 
+              href="https://wa.me/2349017380098?text=Hello%20MX2ViralWorld,%20I%20need%20assistance" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full py-2.5 mt-2 text-xs text-white bg-[#25D366] rounded-lg font-medium hover:opacity-90 transition"
+            >
+              <i className="fab fa-whatsapp text-base"></i> Chat for Support / Funding
+            </a>
           </div>
         </div>
       )}
