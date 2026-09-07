@@ -44,7 +44,9 @@ export default function ProviderDashboard() {
           education_level: data.education_level || '', school: data.school || '',
           long_description: data.long_description || '',
           linkedin: data.social_links?.linkedin || '', twitter: data.social_links?.twitter || '', 
-          tiktok: data.social_links?.tiktok || '', instagram: data.social_links?.instagram || '', portfolio: data.social_links?.portfolio || ''
+          tiktok: data.social_links?.tiktok || '', instagram: data.social_links?.instagram || '', portfolio: data.social_links?.portfolio || '',
+          internship_role: data.internship_role || '',
+          internship_pitch: data.internship_pitch || ''
         })
         if (data.membership === 'pro') {
           const { data: booksData } = await supabase.from('pro_books').select('*').order('created_at', { ascending: false })
@@ -62,7 +64,8 @@ export default function ProviderDashboard() {
       full_name: form.full_name, category: form.category, profession: form.profession, bio: form.bio,
       skills: form.skills.split(',').map((s: string) => s.trim()), whatsapp: form.whatsapp, country: form.country, city: form.city,
       education_level: form.education_level, school: form.school, long_description: form.long_description,
-      social_links: { linkedin: form.linkedin, twitter: form.twitter, tiktok: form.tiktok, instagram: form.instagram, portfolio: form.portfolio }
+      social_links: { linkedin: form.linkedin, twitter: form.twitter, tiktok: form.tiktok, instagram: form.instagram, portfolio: form.portfolio },
+      internship_role: form.internship_role, internship_pitch: form.internship_pitch
     }).eq('id', provider.id)
     if (!error) showToast('Profile updated successfully!', 'success')
     else showToast('Error updating profile.', 'error')
@@ -107,6 +110,30 @@ export default function ProviderDashboard() {
         onclose: function() { setUpgrading(false) }
       })
     } catch (error) { showToast('Something went wrong.', 'error'); setUpgrading(false) }
+  }
+
+  const handleSaveInternship = async (submitForReview = false) => {
+    const updateData: any = {
+      internship_role: form.internship_role,
+      internship_pitch: form.internship_pitch
+    }
+
+    if (submitForReview && !provider.internship_eligible && provider.internship_request_status !== 'pending') {
+      updateData.internship_request_status = 'pending'
+    }
+
+    const { error } = await supabase.from('providers').update(updateData).eq('id', provider.id)
+    
+    if (!error) {
+      if (submitForReview) {
+        setProvider({ ...provider, internship_request_status: 'pending' })
+        showToast('Details saved! Internship request submitted for admin review.', 'success')
+      } else {
+        showToast('Internship details saved!', 'success')
+      }
+    } else {
+      showToast('Error saving internship details.', 'error')
+    }
   }
 
   const handleLogout = () => { localStorage.removeItem('foc_provider'); router.push('/') }
@@ -218,23 +245,6 @@ export default function ProviderDashboard() {
         </div>
       </div>
 
-      {provider.membership === 'pro' && (
-        <div className="premium-card p-8 mb-8">
-          <div className="flex items-center gap-3 mb-6"><i className="fas fa-book-open text-accent text-xl"></i><h2 className="text-xl font-semibold">Pro Member Library</h2></div>
-          <div className="space-y-4">
-            {proBooks.length === 0 ? <p className="text-muted text-sm">No books in the library yet.</p> : proBooks.map((book: any) => (
-              <div key={book.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-paper rounded-xl border border-black/5 gap-4">
-                <div className="flex items-center gap-4">
-                  {book.cover_config?.image_url ? <img src={book.cover_config.image_url} alt={book.title} className="w-12 h-16 rounded-md object-cover shadow-md" /> : <div className="w-12 h-16 rounded-md shadow-md flex items-center justify-center text-white" style={{ background: book.cover_config?.bg || 'linear-gradient(135deg, #1A1A1A, #C1121F)' }}><i className="fas fa-book-bookmark text-lg"></i></div>}
-                  <div><h4 className="font-semibold text-lg">{book.title}</h4><p className="text-sm text-muted">{book.description}</p></div>
-                </div>
-                <button onClick={() => setActiveBook(book)} className="btn-primary !py-2.5 !px-5 text-sm whitespace-nowrap"><i className="fas fa-eye"></i> Read Book</button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       <form onSubmit={handleUpdate} className="premium-card p-8 space-y-6">
         <div className="grid sm:grid-cols-3 gap-5">
           <div>
@@ -321,7 +331,82 @@ export default function ProviderDashboard() {
           </div>
         </div>
 
-        <button type="submit" className="btn-primary w-full justify-center !py-4">Save Changes</button>
+        {/* INTERNSHIP BADGE & PITCH SECTION */}
+        <div className="pt-4 border-t border-green-100">
+          <div className="flex items-start gap-3 mb-6">
+            <i className="fas fa-shield-halved text-green-600 text-xl mt-1"></i>
+            <div className="flex-1">
+              <h3 className="font-semibold text-ink mb-1">Secured Internship Badge</h3>
+              <p className="text-sm text-muted">Get the "Internship Ready" badge. Fill in the details below so employers know exactly what role you want and why you are a great fit.</p>
+            </div>
+          </div>
+
+          <div className="space-y-5 mb-6">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Desired Internship Role / Position</label>
+              <input 
+                value={form.internship_role || ''} 
+                onChange={e => setForm({...form, internship_role: e.target.value})} 
+                className="form-input" 
+                placeholder="e.g. Junior Backend Developer, Social Media Intern"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Why are you a good fit? (Your Pitch)</label>
+              <textarea 
+                rows={4} 
+                value={form.internship_pitch || ''} 
+                onChange={e => setForm({...form, internship_pitch: e.target.value})} 
+                className="form-input" 
+                placeholder="Briefly describe your experience, what you hope to learn, and why an employer should choose you for this internship..."
+              ></textarea>
+            </div>
+          </div>
+
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pt-4 border-t border-black/5">
+            <div>
+              {provider.internship_eligible ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold uppercase">
+                  <i className="fas fa-check-circle"></i> Badge Active
+                </span>
+              ) : provider.internship_request_status === 'pending' ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 text-xs font-bold uppercase">
+                  <i className="fas fa-spinner fa-spin"></i> Request Pending Admin Review
+                </span>
+              ) : provider.internship_request_status === 'rejected' ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-bold uppercase">
+                  <i className="fas fa-times-circle"></i> Request Rejected
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-xs font-bold uppercase">
+                  <i className="fas fa-circle-dot"></i> Not Requested
+                </span>
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              <button 
+                type="button" 
+                onClick={() => handleSaveInternship(false)} 
+                className="btn-secondary !py-2.5 !px-5 text-sm"
+              >
+                Save Details
+              </button>
+
+              {!provider.internship_eligible && provider.internship_request_status !== 'pending' && (
+                <button 
+                  type="button"
+                  onClick={() => handleSaveInternship(true)} 
+                  className="btn-primary !py-2.5 !px-5 text-sm"
+                >
+                  Submit for Badge
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" className="btn-primary w-full justify-center !py-4">Save All Changes</button>
 
         <div className="pt-6 mt-6 border-t border-red-100">
           <h3 className="text-sm font-semibold text-red-600 mb-2">Danger Zone</h3>

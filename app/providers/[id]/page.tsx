@@ -3,6 +3,9 @@ import { getProfessionAvatar } from '@/lib/paystack'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+// Force Next.js to always fetch fresh data so new badges/updates show instantly
+export const dynamic = 'force-dynamic'
+
 export default async function ProviderProfile({ params }: { params: { id: string } }) {
   const { data: provider } = await supabase
     .from('providers')
@@ -15,7 +18,6 @@ export default async function ProviderProfile({ params }: { params: { id: string
 
   const avatar = getProfessionAvatar(provider.profession, provider.full_name)
   
-  // Pre-formatted WhatsApp message
   const waMsg = encodeURIComponent(`Hello ${provider.full_name}, I found you on FindOneCampus (www.findoncampus.com) and I'm interested in your services.`)
   const waLink = `https://wa.me/${provider.whatsapp.replace(/[^0-9]/g, '')}?text=${waMsg}`
 
@@ -30,13 +32,18 @@ export default async function ProviderProfile({ params }: { params: { id: string
           <div className="sticky top-32">
             <img src={avatar} alt={provider.full_name} className="w-full aspect-square rounded-3xl object-cover mb-6" />
             
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
               <h1 className="serif text-3xl">{provider.full_name}</h1>
               {provider.verification_status === 'verified' && (
                 <i className="fas fa-check-circle text-blue-500 text-xl"></i>
               )}
               {provider.membership === 'pro' && (
                 <span className="px-2 py-0.5 rounded-full bg-accent/15 text-accent text-[10px] font-bold uppercase">Pro</span>
+              )}
+              {provider.internship_eligible && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase">
+                  <i className="fas fa-shield-halved"></i> Internship Ready
+                </span>
               )}
             </div>
             
@@ -49,7 +56,6 @@ export default async function ProviderProfile({ params }: { params: { id: string
               <i className="fab fa-whatsapp"></i> Contact via WhatsApp
             </a>
 
-            {/* Mediation Note for Clients */}
             <div className="bg-paper p-4 rounded-xl border border-black/5 mt-6">
               <h4 className="text-xs font-semibold text-ink mb-1">Need Assistance?</h4>
               <p className="text-[11px] text-muted leading-relaxed">
@@ -60,7 +66,6 @@ export default async function ProviderProfile({ params }: { params: { id: string
               </p>
             </div>
 
-            {/* Social Links (Pro Only) */}
             {provider.membership === 'pro' && (
               <div className="mt-8 space-y-3">
                 {provider.social_links?.linkedin && (
@@ -94,7 +99,6 @@ export default async function ProviderProfile({ params }: { params: { id: string
             <p className="text-muted leading-relaxed whitespace-pre-line">{provider.bio}</p>
           </div>
 
-          {/* Long Description (Pro Only) */}
           {provider.membership === 'pro' && provider.long_description && (
             <div className="premium-card p-8 mb-8">
               <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">Detailed Experience <i className="fas fa-crown text-accent text-sm"></i></h2>
@@ -102,7 +106,30 @@ export default async function ProviderProfile({ params }: { params: { id: string
             </div>
           )}
 
-          {/* Education Details */}
+          {/* Internship Pitch (Displays if badge is granted) */}
+          {provider.internship_eligible && provider.internship_role && (
+            <div className="premium-card p-8 mb-8 border-l-4 border-l-green-500">
+              <div className="flex items-center gap-3 mb-4">
+                <i className="fas fa-shield-halved text-green-600 text-xl"></i>
+                <h2 className="text-xl font-semibold text-ink">Open to Internship</h2>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-muted block mb-1">Desired Role</span>
+                  <p className="text-lg font-medium text-ink">{provider.internship_role}</p>
+                </div>
+                
+                {provider.internship_pitch && (
+                  <div className="pt-2 border-t border-black/5">
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted block mb-2 mt-3">Why I'm a Great Fit</span>
+                    <p className="text-muted leading-relaxed whitespace-pre-line">{provider.internship_pitch}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {(provider.education_level || provider.school) && (
             <div className="premium-card p-8 mb-8">
               <h2 className="text-xl font-semibold mb-4">Education</h2>

@@ -13,12 +13,12 @@ interface Provider {
   social_links: any
   verification_status: string
   membership: string
+  internship_eligible: boolean
 }
 
 export default function ProviderCard({ provider }: { provider: Provider }) {
   const avatar = getProfessionAvatar(provider.profession, provider.full_name)
   
-  // Pre-formatted WhatsApp message
   const waMsg = encodeURIComponent(`Hello ${provider.full_name}, I found you on FindOneCampus (www.findoncampus.com) and I'm interested in your services.`)
   const waLink = `https://wa.me/${provider.whatsapp.replace(/[^0-9]/g, '')}?text=${waMsg}`
   
@@ -32,12 +32,20 @@ export default function ProviderCard({ provider }: { provider: Provider }) {
               <i className="fas fa-check-circle text-blue-500 text-sm"></i>
             </div>
           )}
+          {provider.internship_eligible && (
+            <div className="absolute -top-1 -left-1 w-6 h-6 rounded-full bg-green-500 border-2 border-white flex items-center justify-center" title="Secured Internship Available">
+              <i className="fas fa-shield-halved text-white text-[10px]"></i>
+            </div>
+          )}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-semibold text-lg leading-tight">{provider.full_name}</h3>
             {provider.membership === 'pro' && (
               <span className="px-2 py-0.5 rounded-full bg-accent/15 text-accent text-[10px] font-bold uppercase">Pro</span>
+            )}
+            {provider.internship_eligible && (
+              <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase">Internship Ready</span>
             )}
           </div>
           <p className="text-sm text-primary">{provider.profession}</p>
