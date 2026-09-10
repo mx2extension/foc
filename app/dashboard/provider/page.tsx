@@ -115,7 +115,8 @@ export default function ProviderDashboard() {
   const handleSaveInternship = async (submitForReview = false) => {
     const updateData: any = {
       internship_role: form.internship_role,
-      internship_pitch: form.internship_pitch
+      internship_pitch: form.internship_pitch,
+      social_links: { ...provider.social_links, linkedin: form.linkedin } // Save LinkedIn with internship
     }
 
     if (submitForReview && !provider.internship_eligible && provider.internship_request_status !== 'pending') {
@@ -137,7 +138,7 @@ export default function ProviderDashboard() {
   }
 
   const handleLogout = () => { localStorage.removeItem('foc_provider'); router.push('/') }
-  const handleSocialClick = (e: React.MouseEvent) => { if (provider.membership !== 'pro') { e.preventDefault(); showToast('Upgrade to Pro to add social links.', 'info') } }
+  const handleSocialClick = (e: React.MouseEvent) => { if (provider.membership !== 'pro') { e.preventDefault(); showToast('Upgrade to Pro to add this social link.', 'info') } }
   const copyProfileLink = () => {
     const url = `${window.location.origin}/providers/${provider.id}`
     navigator.clipboard.writeText(url)
@@ -230,7 +231,7 @@ export default function ProviderDashboard() {
             ) : (
               <div>
                 <span className="px-3 py-1.5 rounded-full text-sm font-medium bg-gray-200 text-gray-800 mb-4 inline-block">Free Member</span>
-                <p className="text-sm text-muted mb-4">Upgrade to Pro to unlock social links, rank higher, add a detailed bio, and access the Pro Library.</p>
+                <p className="text-sm text-muted mb-4">Upgrade to Pro to unlock Twitter, Instagram, TikTok links, rank higher, add a detailed bio, and access the Pro Library.</p>
                 <div className="flex gap-2 mb-4">
                   <button onClick={() => setSelectedPlan({ months: 1, price: 7000 })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition ${selectedPlan.months === 1 ? 'bg-ink text-white' : 'bg-white border border-black/5 text-muted'}`}>1 Month<br/>₦7,000</button>
                   <button onClick={() => setSelectedPlan({ months: 3, price: 18000 })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition ${selectedPlan.months === 3 ? 'bg-ink text-white' : 'bg-white border border-black/5 text-muted'}`}>3 Months<br/>₦18,000</button>
@@ -317,21 +318,61 @@ export default function ProviderDashboard() {
           </div>
         </div>
 
+        {/* OTHER SOCIAL LINKS (Pro Only) */}
         <div className="pt-4 border-t border-black/5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-ink/80">Social Links</h3>
+            <h3 className="text-sm font-semibold text-ink/80">Other Social Links</h3>
             {provider.membership !== 'pro' && <span className="text-[10px] px-2 py-1 bg-accent/15 text-accent rounded-full font-bold uppercase">Pro Only</span>}
           </div>
           <div className="space-y-4">
-            <input value={form.linkedin || ''} onChange={e => setForm({...form, linkedin: e.target.value})} className="form-input disabled:opacity-50 disabled:cursor-not-allowed" placeholder="LinkedIn URL" disabled={provider.membership !== 'pro'} onClick={handleSocialClick} />
-            <input value={form.twitter || ''} onChange={e => setForm({...form, twitter: e.target.value})} className="form-input disabled:opacity-50 disabled:cursor-not-allowed" placeholder="Twitter / X URL" disabled={provider.membership !== 'pro'} onClick={handleSocialClick} />
-            <input value={form.instagram || ''} onChange={e => setForm({...form, instagram: e.target.value})} className="form-input disabled:opacity-50 disabled:cursor-not-allowed" placeholder="Instagram URL" disabled={provider.membership !== 'pro'} onClick={handleSocialClick} />
-            <input value={form.tiktok || ''} onChange={e => setForm({...form, tiktok: e.target.value})} className="form-input disabled:opacity-50 disabled:cursor-not-allowed" placeholder="TikTok URL" disabled={provider.membership !== 'pro'} onClick={handleSocialClick} />
-            <input value={form.portfolio || ''} onChange={e => setForm({...form, portfolio: e.target.value})} className="form-input disabled:opacity-50 disabled:cursor-not-allowed" placeholder="Portfolio Website URL" disabled={provider.membership !== 'pro'} onClick={handleSocialClick} />
+            <div>
+              <label className="text-xs text-muted mb-1 block">Twitter / X</label>
+              <input 
+                value={form.twitter || ''} 
+                onChange={e => setForm({...form, twitter: e.target.value})} 
+                className="form-input disabled:opacity-50 disabled:cursor-not-allowed" 
+                placeholder="Twitter / X URL" 
+                disabled={provider.membership !== 'pro'} 
+                onClick={handleSocialClick} 
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted mb-1 block">Instagram</label>
+              <input 
+                value={form.instagram || ''} 
+                onChange={e => setForm({...form, instagram: e.target.value})} 
+                className="form-input disabled:opacity-50 disabled:cursor-not-allowed" 
+                placeholder="Instagram URL" 
+                disabled={provider.membership !== 'pro'} 
+                onClick={handleSocialClick} 
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted mb-1 block">TikTok</label>
+              <input 
+                value={form.tiktok || ''} 
+                onChange={e => setForm({...form, tiktok: e.target.value})} 
+                className="form-input disabled:opacity-50 disabled:cursor-not-allowed" 
+                placeholder="TikTok URL" 
+                disabled={provider.membership !== 'pro'} 
+                onClick={handleSocialClick} 
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted mb-1 block">Portfolio Website</label>
+              <input 
+                value={form.portfolio || ''} 
+                onChange={e => setForm({...form, portfolio: e.target.value})} 
+                className="form-input disabled:opacity-50 disabled:cursor-not-allowed" 
+                placeholder="Portfolio Website URL" 
+                disabled={provider.membership !== 'pro'} 
+                onClick={handleSocialClick} 
+              />
+            </div>
           </div>
         </div>
 
-        {/* INTERNSHIP BADGE & PITCH SECTION */}
+        {/* INTERNSHIP BADGE & PITCH SECTION (LinkedIn is here now) */}
         <div className="pt-4 border-t border-green-100">
           <div className="flex items-start gap-3 mb-6">
             <i className="fas fa-shield-halved text-green-600 text-xl mt-1"></i>
@@ -360,6 +401,16 @@ export default function ProviderDashboard() {
                 className="form-input" 
                 placeholder="Briefly describe your experience, what you hope to learn, and why an employer should choose you for this internship..."
               ></textarea>
+            </div>
+            {/* LinkedIn Input moved here */}
+            <div>
+              <label className="text-sm font-medium mb-2 block">LinkedIn Profile URL <span className="text-green-600 font-medium">(Free)</span></label>
+              <input 
+                value={form.linkedin || ''} 
+                onChange={e => setForm({...form, linkedin: e.target.value})} 
+                className="form-input" 
+                placeholder="https://linkedin.com/in/your-profile" 
+              />
             </div>
           </div>
 

@@ -66,13 +66,9 @@ export default async function ProviderProfile({ params }: { params: { id: string
               </p>
             </div>
 
+            {/* Other Social Links (Pro Only) - LinkedIn is NOT here anymore */}
             {provider.membership === 'pro' && (
               <div className="mt-8 space-y-3">
-                {provider.social_links?.linkedin && (
-                  <a href={provider.social_links.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm hover:text-primary transition">
-                    <i className="fab fa-linkedin w-5"></i> LinkedIn
-                  </a>
-                )}
                 {provider.social_links?.twitter && (
                   <a href={provider.social_links.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm hover:text-primary transition">
                     <i className="fab fa-twitter w-5"></i> Twitter / X
@@ -106,7 +102,7 @@ export default async function ProviderProfile({ params }: { params: { id: string
             </div>
           )}
 
-          {/* Internship Pitch (Displays if badge is granted) */}
+          {/* Internship Pitch & LinkedIn Button (Displays if badge is granted) */}
           {provider.internship_eligible && provider.internship_role && (
             <div className="premium-card p-8 mb-8 border-l-4 border-l-green-500">
               <div className="flex items-center gap-3 mb-4">
@@ -124,6 +120,21 @@ export default async function ProviderProfile({ params }: { params: { id: string
                   <div className="pt-2 border-t border-black/5">
                     <span className="text-xs font-bold uppercase tracking-wider text-muted block mb-2 mt-3">Why I'm a Great Fit</span>
                     <p className="text-muted leading-relaxed whitespace-pre-line">{provider.internship_pitch}</p>
+                  </div>
+                )}
+
+                {/* LinkedIn Button Inside Internship Box */}
+                {provider.social_links?.linkedin && (
+                  <div className="pt-4 mt-2 border-t border-black/5">
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted block mb-3">LinkedIn Profile</span>
+                    <a 
+                      href={provider.social_links.linkedin} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="w-full flex items-center justify-center gap-2 py-3 text-sm text-white bg-[#0077B5] rounded-full font-medium hover:opacity-90 transition shadow-md"
+                    >
+                      <i className="fab fa-linkedin text-lg"></i> View LinkedIn Profile
+                    </a>
                   </div>
                 )}
               </div>
