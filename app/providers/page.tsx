@@ -21,6 +21,7 @@ function ProvidersContent() {
   const [search, setSearch] = useState(initialSearch)
   const [category, setCategory] = useState('')
   const [country, setCountry] = useState('')
+  const [visibleCount, setVisibleCount] = useState(12) // Start by showing 12 providers
   
   // Toggle Filters
   const [onlyVerified, setOnlyVerified] = useState(false)
@@ -65,9 +66,17 @@ function ProvidersContent() {
         const sortedData = data.sort((a: any, b: any) => {
           const aScore = (a.verification_status === 'verified' ? 2 : 0) + (a.membership === 'pro' ? 1 : 0)
           const bScore = (b.verification_status === 'verified' ? 2 : 0) + (b.membership === 'pro' ? 1 : 0)
-          return bScore - aScore
+          
+          // If scores are different, prioritize the higher badge (Verified > Pro > Free)
+          if (aScore !== bScore) {
+            return bScore - aScore
+          }
+          
+          // If scores are the same, scramble them randomly on every load/refresh!
+          return Math.random() - 0.5
         })
         setProviders(sortedData)
+        setVisibleCount(12) // Reset visible count to 12 when filters change
       } else {
         setProviders([])
       }
@@ -132,9 +141,24 @@ function ProvidersContent() {
       {providers.length === 0 ? (
         <p className="text-center py-20 text-muted">No providers match your search. Try different filters.</p>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {providers.map((p: any) => <ProviderCard key={p.id} provider={p} />)}
-        </div>
+        <>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Only slice the array to show the visibleCount amount */}
+            {providers.slice(0, visibleCount).map((p: any) => <ProviderCard key={p.id} provider={p} />)}
+          </div>
+          
+          {/* View More Button */}
+          {providers.length > visibleCount && (
+            <div className="text-center mt-12">
+              <button 
+                onClick={() => setVisibleCount(visibleCount + 12)} 
+                className="btn-secondary !py-3 !px-8"
+              >
+                View More Providers <i className="fas fa-arrow-down ml-2 text-xs"></i>
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   )

@@ -15,7 +15,7 @@ export default function PageHeroNav() {
     { href: '/providers', label: 'Providers', icon: 'fa-user', bg: 'bg-red-600 text-white', external: false },
     { href: '/books', label: 'Books', icon: 'fa-book', bg: 'bg-amber-600 text-white', external: false },
     { href: '/courses', label: 'Courses', icon: 'fa-graduation-cap', bg: 'bg-emerald-600 text-white', external: false },
-    { href: '/resources', label: 'Resources', icon: 'fa-briefcase', bg: 'bg-blue-600 text-white', external: false },
+    { href: '/shop', label: 'Shop', icon: 'fa-bag-shopping', bg: 'bg-orange-600 text-white', external: false, buzz: true },
     { href: '/news', label: 'News & Updates', icon: 'fa-newspaper', bg: 'bg-teal-600 text-white', external: false },
     // Combined buzz and glow into a single animation class
     { href: '/social-growth', label: 'Social Growth', icon: 'fa-rocket', bg: 'bg-gradient-to-r from-[#D4A017] to-[#C1121F] text-white', external: false, buzzGlow: true },

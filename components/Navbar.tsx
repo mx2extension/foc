@@ -59,6 +59,7 @@ export default function Navbar() {
           <Link href="/books" onClick={() => setMobileOpen(false)} className="hover:text-primary">Books</Link>
           <Link href="/social-growth" onClick={() => setMobileOpen(false)} className="hover:text-primary">Boost Your Social Presence</Link>
           <Link href="/resources" onClick={() => setMobileOpen(false)} className="hover:text-primary">Resources</Link>
+          <Link href="/shop" onClick={() => setMobileOpen(false)} className="hover:text-primary">Shop on Aliexpress</Link>
           <Link href="/about" onClick={() => setMobileOpen(false)} className="hover:text-primary">About</Link>
           <Link href="/contact" onClick={() => setMobileOpen(false)} className="hover:text-primary">Contact</Link>
           

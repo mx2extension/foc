@@ -26,6 +26,23 @@ const instrumentSerif = Instrument_Serif({
   adjustFontFallback: false
 })
 
+// Structured Data to tell Google this is the official brand website
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "FindOneCampus",
+  "alternateName": "FindOnCampus",
+  "url": "https://findoncampus.com",
+  "logo": "https://res.cloudinary.com/drnrbfltr/image/upload/v1782561824/5b840287-582b-4833-a671-b7701bc87206.png",
+  "description": "FindOneCampus is the global digital marketplace where you can find trusted professionals, freelance service providers, online courses, and ebooks worldwide.",
+  "sameAs": [
+    "https://www.instagram.com/findonecampus",
+    "https://www.linkedin.com/company/findonecampus",
+    "https://x.com/findonecampus",
+    "https://whatsapp.com/channel/0029Vb75uej0wajzyNM1hN2k"
+  ]
+}
+
 export const metadata = {
   title: {
     default: 'FindOneCampus (FindOnCampus) — The World Is One Big Campus',
@@ -65,6 +82,7 @@ export const metadata = {
     'digital marketplace', 
     'online courses', 
     'ebooks', 
+    'shop online',
     'social media growth', 
     'hire professionals', 
     'find service providers', 
@@ -99,6 +117,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+        
+        {/* Inject Structured Data for SEO to outrank social media profiles */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
       </head>
       <body className="font-sans">
         <Script src="https://js.paystack.co/v1/inline.js" strategy="beforeInteractive" />

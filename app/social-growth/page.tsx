@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 // Configuration: Markups
-const REGULAR_MARKUP = 3 
+const REGULAR_MARKUP = 2 
 const VIEWS_MARKUP = 30 
 
 export default function SocialGrowthPage() {

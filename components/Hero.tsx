@@ -132,7 +132,7 @@ export default function Hero() {
             { href: '/courses', icon: 'fa-graduation-cap', label: 'Courses', bg: 'bg-emerald-600 text-white shadow-emerald-600/30', external: false },
             { href: '/resources', icon: 'fa-toolbox', label: 'Resources', bg: 'bg-indigo-600 text-white shadow-indigo-600/30', external: false },
             { href: '/news', icon: 'fa-newspaper', label: 'News & Updates', bg: 'bg-teal-600 text-white shadow-teal-600/30', external: false },
-            { href: '/faq', icon: 'fa-circle-question', label: 'FAQ', bg: 'bg-cyan-600 text-white shadow-cyan-600/30', external: false },
+           { href: '/shop', icon: 'fa-bag-shopping', label: 'Shop', bg: 'bg-orange-600 text-white shadow-orange-600/30', external: false },
             { href: 'https://whatsapp.com/channel/0029Vb75uej0wajzyNM1hN2k', icon: 'fa-whatsapp', label: 'WhatsApp Channel', bg: 'bg-green-600 text-white shadow-green-600/30', external: true, buzz: true },
             { 
               href: 'https://x.com/findonecampus', 
