@@ -172,7 +172,7 @@ export default function Footer() {
               <li><Link href="/become-a-provider" className="hover:text-white transition">Become a Provider</Link></li>
               <li><Link href="/provider-login" className="hover:text-white transition">Provider Login</Link></li>
               <li><Link href="/news" className="hover:text-white transition">News & Updates</Link></li>
-              <li><Link href="/shop" className="hover:text-white transition">Shop on Aliexpress</Link></li>
+              <li><Link href="/shop" className="hover:text-white transition">Shop On FOC</Link></li>
             </ul>
           </div>
 
