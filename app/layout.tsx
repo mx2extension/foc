@@ -4,6 +4,7 @@ import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import ScrollReveal from '@/components/ScrollReveal'
+import PageHeroNav from '@/components/PageHeroNav'
 import SocialGrowthPanel from '@/components/SocialGrowthPanel'
 import AgentChat from '@/components/AgentChat' 
 import FallbackPaymentModal from '@/components/FallbackPaymentModal'
@@ -129,8 +130,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Script src="https://checkout.flutterwave.com/v3.js" strategy="beforeInteractive" />
         
         <ScrollReveal />
-        <Navbar />
+        <div className="lg:hidden">
+          <Navbar />
+        </div>
         <main className="lg:pt-0 pt-4">
+          <div className="max-w-7xl mx-auto px-4 sm:px6 lg:px-8">
+            <PageHeroNav />
+          </div>
           {children}
         </main>
         <Footer />
