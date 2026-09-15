@@ -16,11 +16,18 @@ export default async function Home() {
   const allProviders = providersRes.data || []
   const latestNews = newsRes.data || []
 
-  // 3. Sort providers to prioritize Pro & Verified on the homepage safely
+  // 3. Sort providers to prioritize Pro & Verified, AND scramble equal scores on every load
   const featuredProviders = [...allProviders].sort((a: any, b: any) => {
     const aScore = (a.verification_status === 'verified' ? 2 : 0) + (a.membership === 'pro' ? 1 : 0)
     const bScore = (b.verification_status === 'verified' ? 2 : 0) + (b.membership === 'pro' ? 1 : 0)
-    return bScore - aScore
+    
+    // If scores are different, prioritize the higher badge (Verified > Pro > Free)
+    if (aScore !== bScore) {
+      return bScore - aScore
+    }
+    
+    // If scores are the same, scramble them randomly on every load/refresh!
+    return Math.random() - 0.5
   }).slice(0, 6)
 
   // 4. Hardcoded FAQs for the homepage preview
@@ -121,7 +128,8 @@ export default async function Home() {
               { icon: 'fa-user-tie', title: 'Professionals', desc: 'Find trusted experts across every field.', meta: 'Verified experts • Global network', color: 'bg-primary/10 text-primary', link: '/providers' },
               { icon: 'fa-book-open', title: 'Books', desc: 'A curated digital bookstore of independent titles.', meta: 'Curated titles • Instant download', color: 'bg-accent/15 text-accent', link: '/books' },
               { icon: 'fa-graduation-cap', title: 'Courses', desc: 'Live and self-paced courses taught by practitioners.', meta: 'Live & self-paced • Taught by doers', color: 'bg-ink/10 text-ink', link: '/courses' },
-              { icon: 'fa-microphone-lines', title: 'Podcasts', desc: 'Conversations with builders and thinkers.', meta: 'Curated weekly • Fresh episodes', color: 'bg-primary/10 text-primary', link: '/resources' },
+              // Replaced Podcasts with Shop and added gradient style
+              { icon: 'fa-bag-shopping', title: 'The Shop', desc: 'Premium gadgets, fashion, and home goods delivered globally.', meta: 'Curated tech & lifestyle • Secure checkout', color: 'bg-gradient-to-br from-primary to-accent text-white', link: '/shop' },
               { icon: 'fa-toolbox', title: 'Resources', desc: 'Tools, articles, and movies for the lifelong learner.', meta: 'Hand-picked • Updated regularly', color: 'bg-accent/15 text-accent', link: '/resources' },
               { icon: 'fa-compass', title: 'Community', desc: 'Get-To-Know About the Campus to Stay Involved', meta: 'Weekly drops • Community-curated', color: 'bg-ink/10 text-ink', link: '/community' },
             ].map((cat, i) => (
@@ -141,6 +149,27 @@ export default async function Home() {
                 </div>
               </Link>
             ))}
+          </div>
+        </div>
+      </section>
+
+{/* SPONSORED AD - RUN ADS WITH US */}
+      <section className="py-16 relative overflow-hidden">
+        <div className="max-w-4xl mx-auto px-6 lg:px-10">
+          <div className="premium-card p-8 md:p-12 !bg-[#121212] text-white flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left shadow-2xl border border-white/10">
+            <div>
+              <span className="text-xs uppercase tracking-widest text-accent font-bold mb-2 block">Sponsored</span>
+              <h3 className="serif text-2xl md:text-3xl mb-2 text-white">Reach 50,000+ Global Searchers</h3>
+              <p className="text-white/70 max-w-md">Advertise your business, course, or product to a highly engaged community of learners and professionals.</p>
+            </div>
+            <a 
+              href="https://wa.me/2348149193063?text=I%20want%20to%20run%20an%20ad%20on%20FindOneCampus" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="btn-primary !bg-white !text-black whitespace-nowrap !py-4 !px-8 hover:!bg-paper transition"
+            >
+              <i className="fab fa-whatsapp mr-2 text-green-600"></i> Run an Ad
+            </a>
           </div>
         </div>
       </section>
@@ -347,15 +376,15 @@ export default async function Home() {
               <span className="serif-italic gradient-text">searching for.</span>
             </h2>
             <p className="text-lg text-muted max-w-xl mx-auto mb-10">
-              Whether it's a person, a book, a course, an opportunity, or simply your next step — the campus is here, and the doors are open.
+              Whether it's a person, a book, a course, an opportunity, or the perfect gadget — the campus is here, and the doors are open.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4">
-              <Link href="/providers" className="btn-primary">
-                <span>Start searching</span>
+              <Link href="/shop" className="btn-primary">
+                <span>Visit the Shop</span>
                 <i className="fas fa-arrow-right text-xs"></i>
               </Link>
-              <Link href="/become-a-provider" className="btn-secondary">
-                <span>Become a provider</span>
+              <Link href="/providers" className="btn-secondary">
+                <span>Find a Professional</span>
               </Link>
             </div>
           </div>

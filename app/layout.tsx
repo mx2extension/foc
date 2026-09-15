@@ -26,20 +26,39 @@ const instrumentSerif = Instrument_Serif({
   adjustFontFallback: false
 })
 
-// Structured Data to tell Google this is the official brand website
-const organizationSchema = {
+// Enhanced Combined Organization & WebSite Schema with explicit entity graphing
+const combinedSchema = {
   "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "FindOneCampus",
-  "alternateName": "FindOnCampus",
-  "url": "https://findoncampus.com",
-  "logo": "https://res.cloudinary.com/drnrbfltr/image/upload/v1782561824/5b840287-582b-4833-a671-b7701bc87206.png",
-  "description": "FindOneCampus is the global digital marketplace where you can find trusted professionals, freelance service providers, online courses, and ebooks worldwide.",
-  "sameAs": [
-    "https://www.instagram.com/findonecampus",
-    "https://www.linkedin.com/company/findonecampus",
-    "https://x.com/findonecampus",
-    "https://whatsapp.com/channel/0029Vb75uej0wajzyNM1hN2k"
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://findoncampus.com/#organization",
+      "name": "FindOneCampus",
+      "alternateName": "FindOnCampus",
+      "url": "https://findoncampus.com",
+      "logo": "https://res.cloudinary.com/drnrbfltr/image/upload/v1782561824/5b840287-5824-4833-a671-b7701bc87206.png",
+      "description": "FindOneCampus is the global digital marketplace where you can find trusted professionals, freelance service providers, online courses, and ebooks worldwide.",
+      "sameAs": [
+        "https://www.instagram.com/findonecampus",
+        "https://www.linkedin.com/company/findonecampus",
+        "https://x.com/findonecampus",
+        "https://whatsapp.com/channel/0029Vb75uej0wajzyNM1hN2k"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://findoncampus.com/#website",
+      "url": "https://findoncampus.com",
+      "name": "FindOneCampus",
+      "publisher": {
+        "@id": "https://findoncampus.com/#organization"
+      },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://findoncampus.com/?s={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
   ]
 }
 
@@ -52,20 +71,12 @@ export const metadata = {
   metadataBase: new URL('https://findoncampus.com'),
   alternates: {
     canonical: '/',
-    languages: {
-      'en': '/',
-      'x-default': '/',
-    },
+    languages: { 'en': '/', 'x-default': '/' },
   },
   robots: {
     index: true,      
     follow: true,      
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
   },
   icons: {
     icon: [{ url: '/favicon.png', type: 'image/png', sizes: '32x32' }],
@@ -73,20 +84,10 @@ export const metadata = {
     apple: [{ url: '/favicon.png', type: 'image/png', sizes: '180x180' }],
   },
   keywords: [
-    'FindOneCampus',
-    'FindOnCampus',
-    'findonecampus.com',
-    'findoncampus.com',
-    'global professionals', 
-    'freelance directory', 
-    'digital marketplace', 
-    'online courses', 
-    'ebooks', 
-    'shop online',
-    'social media growth', 
-    'hire professionals', 
-    'find service providers', 
-    'worldwide opportunities'
+    'FindOneCampus', 'FindOnCampus', 'findonecampus.com', 'findoncampus.com',
+    'global professionals', 'freelance directory', 'digital marketplace', 
+    'online courses', 'ebooks', 'shop online', 'social media growth', 
+    'hire professionals', 'find service providers', 'worldwide opportunities'
   ],
   openGraph: {
     title: 'FindOneCampus — The World Is One Big Campus',
@@ -118,15 +119,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
         
-        {/* Inject Structured Data for SEO to outrank social media profiles */}
+        {/* Inject Combined Schema for SEO & AI Search */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(combinedSchema) }}
         />
       </head>
       <body className="font-sans">
         <Script src="https://js.paystack.co/v1/inline.js" strategy="beforeInteractive" />
-        {/* Flutterwave Script */}
         <Script src="https://checkout.flutterwave.com/v3.js" strategy="beforeInteractive" />
         
         <ScrollReveal />
@@ -134,7 +134,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Navbar />
         </div>
         <main className="lg:pt-0 pt-4">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px6 lg:px-8">
             <PageHeroNav />
           </div>
           {children}
