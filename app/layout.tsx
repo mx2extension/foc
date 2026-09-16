@@ -26,22 +26,22 @@ const instrumentSerif = Instrument_Serif({
   adjustFontFallback: false
 })
 
-// Enhanced Combined Organization & WebSite Schema with explicit entity graphing
+// Enhanced Combined Organization & WebSite Schema with FindOnCampus as primary
 const combinedSchema = {
   "@context": "https://schema.org",
   "@graph": [
     {
       "@type": "Organization",
       "@id": "https://findoncampus.com/#organization",
-      "name": "FindOneCampus",
-      "alternateName": "FindOnCampus",
+      "name": "FindOnCampus",
+      "alternateName": "FindOneCampus",
       "url": "https://findoncampus.com",
       "logo": "https://res.cloudinary.com/drnrbfltr/image/upload/v1782561824/5b840287-5824-4833-a671-b7701bc87206.png",
-      "description": "FindOneCampus is the global digital marketplace where you can find trusted professionals, freelance service providers, online courses, and ebooks worldwide.",
+      "description": "FindOnCampus is the global digital marketplace where you can find trusted professionals, freelance service providers, online courses, and ebooks worldwide.",
       "sameAs": [
-        "https://www.instagram.com/findonecampus",
-        "https://www.linkedin.com/company/findonecampus",
-        "https://x.com/findonecampus",
+        "https://www.instagram.com/findoncampus",
+        "https://www.linkedin.com/company/findoncampus",
+        "https://x.com/findoncampus",
         "https://whatsapp.com/channel/0029Vb75uej0wajzyNM1hN2k"
       ]
     },
@@ -49,7 +49,7 @@ const combinedSchema = {
       "@type": "WebSite",
       "@id": "https://findoncampus.com/#website",
       "url": "https://findoncampus.com",
-      "name": "FindOneCampus",
+      "name": "FindOnCampus",
       "publisher": {
         "@id": "https://findoncampus.com/#organization"
       },
@@ -64,18 +64,18 @@ const combinedSchema = {
 
 export const metadata = {
   title: {
-    default: 'FindOneCampus (FindOnCampus) — The World Is One Big Campus',
-    template: '%s | FindOneCampus'
+    default: 'FindOnCampus (FindOneCampus) — The World Is One Big Campus',
+    template: '%s | FindOnCampus'
   },
-  description: 'FindOneCampus (also known as FindOnCampus) is the global digital marketplace where you can find trusted professionals, freelance service providers, online courses, and ebooks worldwide.',
+  description: 'FindOnCampus (also known as FindOneCampus) is the global digital marketplace where you can find trusted professionals, freelance service providers, online courses, and ebooks worldwide.',
   metadataBase: new URL('https://findoncampus.com'),
   alternates: {
     canonical: '/',
     languages: { 'en': '/', 'x-default': '/' },
   },
   robots: {
-    index: true,      
-    follow: true,      
+    index: true,        
+    follow: true,        
     googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
   },
   icons: {
@@ -84,23 +84,23 @@ export const metadata = {
     apple: [{ url: '/favicon.png', type: 'image/png', sizes: '180x180' }],
   },
   keywords: [
-    'FindOneCampus', 'FindOnCampus', 'findonecampus.com', 'findoncampus.com',
+    'FindOnCampus', 'FindOneCampus', 'findoncampus.com', 'findonecampus.com',
     'global professionals', 'freelance directory', 'digital marketplace', 
     'online courses', 'ebooks', 'shop online', 'social media growth', 
     'hire professionals', 'find service providers', 'worldwide opportunities'
   ],
   openGraph: {
-    title: 'FindOneCampus — The World Is One Big Campus',
+    title: 'FindOnCampus — The World Is One Big Campus',
     description: 'The world is one giant campus where everyone is learning, building, creating, hiring, serving, teaching and growing.',
     url: 'https://findoncampus.com',
-    siteName: 'FindOneCampus',
-    images: [{ url: '/foc_v3.png', width: 1200, height: 630, alt: 'FindOneCampus' }],
+    siteName: 'FindOnCampus',
+    images: [{ url: '/foc_v3.png', width: 1200, height: 630, alt: 'FindOnCampus' }],
     locale: 'en_US',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'FindOneCampus — The World Is One Big Campus',
+    title: 'FindOnCampus — The World Is One Big Campus',
     description: 'The world is one giant campus where everyone is learning, building, creating, hiring, serving, teaching and growing.',
     images: ['/foc_v3.png'],
   },
@@ -112,7 +112,7 @@ declare global {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${instrumentSerif.variable}`}>
+    <html lang="en" className={`${inter.variable}${instrumentSerif.variable}`}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

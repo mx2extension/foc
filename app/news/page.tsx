@@ -1,6 +1,9 @@
 import { supabase } from '@/lib/supabase/client'
 import Link from 'next/link'
 
+// Force Next.js to always fetch fresh data so new articles show up instantly
+export const dynamic = 'force-dynamic'
+
 export default async function NewsPage() {
   const { data: articles } = await supabase
     .from('news_updates')
