@@ -58,16 +58,16 @@ export default function PageHeroNav() {
         }
       `}</style>
 
-      {/* Grid container adjusted to accommodate 12 items (4 rows x 3 columns) */}
-      <div className="hidden lg:grid absolute right-6 top-12 z-50 grid-cols-3 grid-rows-4 gap-2.5 pointer-events-auto">
+      {/* Grid container: Added mt-24 on mobile so it sits cleanly below the fixed header */}
+      <div className="grid grid-cols-6 gap-2 p-3 z-50 pointer-events-auto bg-white/80 backdrop-blur-md rounded-2xl shadow-md border border-black/5 mx-4 mt-24 lg:mx-0 lg:mt-0 lg:absolute lg:right-6 lg:top-12 lg:grid lg:grid-cols-3 lg:grid-rows-4 lg:gap-2.5 lg:bg-transparent lg:backdrop-blur-none lg:p-0 lg:border-none lg:shadow-none">
         {navItems.map((item: any, index) => {
           // Determine the correct animation class
           const animationClass = item.buzzGlow ? 'animate-buzz-glow' : item.buzz ? 'animate-buzz' : '';
 
           return (
-            <div key={index} className="relative group flex items-center justify-end">
-              {/* Tooltip Label on Hover */}
-              <span className="absolute right-14 px-3 py-1 bg-black/80 text-white text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-lg">
+            <div key={index} className="relative group flex items-center justify-center lg:justify-end">
+              {/* Tooltip Label on Hover (Desktop only) */}
+              <span className="hidden lg:block absolute right-14 px-3 py-1 bg-black/80 text-white text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-lg">
                 {item.label}
               </span>
               
@@ -77,16 +77,16 @@ export default function PageHeroNav() {
                   href={item.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`w-11 h-11 rounded-xl ${item.bg} flex items-center justify-center shadow-md ${animationClass ? '' : 'transition-transform hover:scale-105 active:scale-95'} ${animationClass}`}
+                  className={`w-10 h-10 lg:w-11 lg:h-11 rounded-xl ${item.bg} flex items-center justify-center shadow-md ${animationClass ? '' : 'transition-transform hover:scale-105 active:scale-95'} ${animationClass}`}
                 >
-                  <i className={`fab ${item.icon} text-base`}></i>
+                  <i className={`fab ${item.icon} text-sm lg:text-base`}></i>
                 </a>
               ) : (
                 <Link
                   href={item.href}
-                  className={`w-11 h-11 rounded-xl ${item.bg} flex items-center justify-center shadow-md ${animationClass ? '' : 'transition-transform hover:scale-105 active:scale-95'} ${animationClass}`}
+                  className={`w-10 h-10 lg:w-11 lg:h-11 rounded-xl ${item.bg} flex items-center justify-center shadow-md ${animationClass ? '' : 'transition-transform hover:scale-105 active:scale-95'} ${animationClass}`}
                 >
-                  <i className={`fas ${item.icon} text-base`}></i>
+                  <i className={`fas ${item.icon} text-sm lg:text-base`}></i>
                 </Link>
               )}
             </div>

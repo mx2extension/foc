@@ -123,62 +123,63 @@ export default function Hero() {
 
       <section className="relative min-h-screen flex flex-col justify-center pt-32 pb-20 overflow-hidden">
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full z-0 pointer-events-none" />
-        
-        {/* Interactive Floating Quick Nav Dock */}
-        <div className="absolute top-[12%] right-[5%] hidden lg:grid grid-cols-3 gap-3 z-50 pointer-events-auto">
-          {[
-            { href: '/providers', icon: 'fa-user-tie', label: 'Providers', bg: 'bg-primary text-white shadow-primary/30', external: false },
-            { href: '/books', icon: 'fa-book-open', label: 'Books', bg: 'bg-amber-600 text-white shadow-amber-600/30', external: false },
-            { href: '/courses', icon: 'fa-graduation-cap', label: 'Courses', bg: 'bg-emerald-600 text-white shadow-emerald-600/30', external: false },
-            { href: '/resources', icon: 'fa-toolbox', label: 'Resources', bg: 'bg-indigo-600 text-white shadow-indigo-600/30', external: false },
-            { href: '/news', icon: 'fa-newspaper', label: 'News & Updates', bg: 'bg-teal-600 text-white shadow-teal-600/30', external: false },
-           { href: '/shop', icon: 'fa-bag-shopping', label: 'Shop', bg: 'bg-orange-600 text-white shadow-orange-600/30', external: false },
-            { href: 'https://whatsapp.com/channel/0029Vb75uej0wajzyNM1hN2k', icon: 'fa-whatsapp', label: 'WhatsApp Channel', bg: 'bg-green-600 text-white shadow-green-600/30', external: true, buzz: true },
-            { 
-              href: 'https://x.com/findonecampus', 
-              label: 'X (Twitter)', 
-              bg: 'bg-neutral-900 text-white shadow-neutral-950/30', 
-              external: true, 
-              customSvg: (
-                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                </svg>
-              )
-            },
-            { href: '/about', icon: 'fa-info-circle', label: 'About', bg: 'bg-purple-600 text-white shadow-purple-600/30', external: false },
-            { href: '/contact', icon: 'fa-envelope', label: 'Contact', bg: 'bg-zinc-900 text-white shadow-zinc-950/30', external: false },
-            { href: '/become-a-provider', icon: 'fa-user-plus', label: 'Become a Provider', bg: 'bg-blue-600 text-white shadow-blue-600/30', external: false },
-            { href: '/provider-login', icon: 'fa-right-to-bracket', label: 'Provider Login', bg: 'bg-rose-600 text-white shadow-rose-600/30', external: false },
-          ].map((item, index) => (
-            <div key={index} className="relative group flex items-center justify-center">
-              {/* Sliding Tooltip Label on Hover */}
-              <span className="absolute bottom-full mb-2 px-3 py-1 rounded-xl bg-ink text-white text-[11px] font-medium tracking-wide opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 pointer-events-none whitespace-nowrap shadow-xl z-50">
-                {item.label}
-              </span>
-              
-              {/* Enlarged Colorful Animated Icon Button */}
-              {item.external ? (
-                <a 
-                  href={item.href} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center text-lg shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 ${item.bg} ${item.buzz ? 'animate-buzz' : ''}`}
-                >
-                  {item.customSvg ? item.customSvg : <i className={`fab ${item.icon}`}></i>}
-                </a>
-              ) : (
-                <Link 
-                  href={item.href} 
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center text-lg shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 ${item.bg}`}
-                >
-                  <i className={`fas ${item.icon}`}></i>
-                </Link>
-              )}
-            </div>
-          ))}
-        </div>
 
         <div className="relative max-w-7xl mx-auto px-6 lg:px-10 w-full z-20 pointer-events-none">
+          
+          {/* Interactive Quick Nav Dock - Placed cleanly at the top on mobile, floating on desktop */}
+          <div className="grid grid-cols-6 gap-2 mb-8 z-50 pointer-events-auto bg-white/70 backdrop-blur-md p-2.5 rounded-2xl shadow-sm border border-black/5 lg:absolute lg:top-[12%] lg:right-[5%] lg:w-auto lg:grid-cols-3 lg:bg-transparent lg:backdrop-blur-none lg:p-0 lg:border-none lg:shadow-none">
+            {[
+              { href: '/providers', icon: 'fa-user-tie', label: 'Providers', bg: 'bg-primary text-white shadow-primary/30', external: false },
+              { href: '/books', icon: 'fa-book-open', label: 'Books', bg: 'bg-amber-600 text-white shadow-amber-600/30', external: false },
+              { href: '/courses', icon: 'fa-graduation-cap', label: 'Courses', bg: 'bg-emerald-600 text-white shadow-emerald-600/30', external: false },
+              { href: '/resources', icon: 'fa-toolbox', label: 'Resources', bg: 'bg-indigo-600 text-white shadow-indigo-600/30', external: false },
+              { href: '/news', icon: 'fa-newspaper', label: 'News & Updates', bg: 'bg-teal-600 text-white shadow-teal-600/30', external: false },
+              { href: '/shop', icon: 'fa-bag-shopping', label: 'Shop', bg: 'bg-orange-600 text-white shadow-orange-600/30', external: false },
+              { href: 'https://whatsapp.com/channel/0029Vb75uej0wajzyNM1hN2k', icon: 'fa-whatsapp', label: 'WhatsApp Channel', bg: 'bg-green-600 text-white shadow-green-600/30', external: true, buzz: true },
+              { 
+                href: 'https://x.com/findonecampus', 
+                label: 'X (Twitter)', 
+                bg: 'bg-neutral-900 text-white shadow-neutral-950/30', 
+                external: true, 
+                customSvg: (
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                )
+              },
+              { href: '/about', icon: 'fa-info-circle', label: 'About', bg: 'bg-purple-600 text-white shadow-purple-600/30', external: false },
+              { href: '/contact', icon: 'fa-envelope', label: 'Contact', bg: 'bg-zinc-900 text-white shadow-zinc-950/30', external: false },
+              { href: '/become-a-provider', icon: 'fa-user-plus', label: 'Become a Provider', bg: 'bg-blue-600 text-white shadow-blue-600/30', external: false },
+              { href: '/provider-login', icon: 'fa-right-to-bracket', label: 'Provider Login', bg: 'bg-rose-600 text-white shadow-rose-600/30', external: false },
+            ].map((item, index) => (
+              <div key={index} className="relative group flex items-center justify-center">
+                {/* Sliding Tooltip Label on Hover (Desktop only) */}
+                <span className="hidden lg:block absolute bottom-full mb-2 px-3 py-1 rounded-xl bg-ink text-white text-[11px] font-medium tracking-wide opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 pointer-events-none whitespace-nowrap shadow-xl z-50">
+                  {item.label}
+                </span>
+                
+                {/* Enlarged Colorful Animated Icon Button */}
+                {item.external ? (
+                  <a 
+                    href={item.href} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className={`w-10 h-10 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl flex items-center justify-center text-xs lg:text-lg shadow-md lg:shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 ${item.bg} ${item.buzz ? 'animate-buzz' : ''}`}
+                  >
+                    {item.customSvg ? item.customSvg : <i className={`fab ${item.icon}`}></i>}
+                  </a>
+                ) : (
+                  <Link 
+                    href={item.href} 
+                    className={`w-10 h-10 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl flex items-center justify-center text-xs lg:text-lg shadow-md lg:shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 ${item.bg}`}
+                  >
+                    <i className={`fas ${item.icon}`}></i>
+                  </Link>
+                )}
+              </div>
+            ))}
+          </div>
+
           <div className="reveal visible mb-8 flex items-center gap-3 pointer-events-auto">
             <span className="inline-flex items-center gap-2.5 text-xs tracking-[0.25em] uppercase text-primary font-medium">
               <span className="w-6 h-px bg-primary"></span>

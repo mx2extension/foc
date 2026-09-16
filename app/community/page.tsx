@@ -112,7 +112,7 @@ export default function CommunityPage() {
               Supporting communities, uplifting the vulnerable, and driving meaningful social impact.
             </p>
             <div className="mt-6">
-              <a href="https://www.bdi.com/eli7foundation#support" target="_blank" rel="noopener noreferrer" className="btn-primary inline-flex items-center gap-2">
+              <a href="https://www.mx2bdi.com/eli7foundation#support" target="_blank" rel="noopener noreferrer" className="btn-primary inline-flex items-center gap-2">
                 <i className="fa-solid fa-heart"></i> Support the Foundation
               </a>
             </div>
