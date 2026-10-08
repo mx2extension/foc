@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import Link from 'next/link'
@@ -14,7 +14,7 @@ const CATEGORIES: Record<string, string[]> = {
   'Sports & Outdoors': ['Gear', 'Apparel', 'Equipment']
 };
 
-export default function ShopPage() {
+function ShopContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -151,15 +151,15 @@ export default function ShopPage() {
         {category !== 'All' && CATEGORIES[category].length > 0 && (
           <div className="flex flex-col gap-3 mb-12 pb-8 border-b border-black/5">
             {category === 'Fashion' && (
-<div className="text-xs uppercase tracking-wider font-semibold text-primary flex items-center gap-2 flex-wrap">
-  <span>All Fashion is from ARRAYED LIKE NON (ALN) for partnership, exclusive orders, complaints etc</span>
-  <a 
-    href="mailto:arrayedlikenon@gmail.com" 
-    className="inline-flex items-center gap-1.5 hover:underline lowercase font-normal text-muted hover:text-primary transition"
-  >
-    <i className="fas fa-envelope text-primary"></i> arrayedlikenon@gmail.com
-  </a>
-</div>
+              <div className="text-xs uppercase tracking-wider font-semibold text-primary flex items-center gap-2 flex-wrap">
+                <span>All Fashion is from ARRAYED LIKE NON (ALN) for partnership, exclusive orders, complaints etc</span>
+                <a 
+                  href="mailto:arrayedlikenon@gmail.com" 
+                  className="inline-flex items-center gap-1.5 hover:underline lowercase font-normal text-muted hover:text-primary transition"
+                >
+                  <i className="fas fa-envelope text-primary"></i> arrayedlikenon@gmail.com
+                </a>
+              </div>
             )}
             <div className="flex flex-wrap gap-2">
               <button onClick={() => handleSubCategoryChange('')} className={`px-4 py-2 rounded-full text-xs font-medium transition ${subCategory === '' ? 'bg-primary text-white' : 'bg-paper border border-black/5 text-muted'}`}>
@@ -212,5 +212,18 @@ export default function ShopPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function ShopPage() {
+  return (
+    <Suspense fallback={
+      <div className="text-center py-32 text-muted">
+        <i className="fas fa-spinner fa-spin text-3xl mb-4"></i>
+        <p>Loading shop...</p>
+      </div>
+    }>
+      <ShopContent />
+    </Suspense>
   )
 }
