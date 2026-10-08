@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import Link from 'next/link'
 import ShopAd from '@/components/ShopAd'
@@ -14,13 +15,48 @@ const CATEGORIES: Record<string, string[]> = {
 };
 
 export default function ShopPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [category, setCategory] = useState('All')
-  const [subCategory, setSubCategory] = useState('')
+  const [category, setCategory] = useState(searchParams.get('category') || 'All')
+  const [subCategory, setSubCategory] = useState(searchParams.get('sub') || '')
   const [sort, setSort] = useState('created_at_desc')
   const [cart, setCart] = useState<any[]>([])
+
+  // Sync state changes back to the URL search params so links can be shared
+  const updateUrlParams = (newCategory: string, newSub: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (newCategory && newCategory !== 'All') {
+      params.set('category', newCategory)
+    } else {
+      params.delete('category')
+    }
+
+    if (newSub) {
+      params.set('sub', newSub)
+    } else {
+      params.delete('sub')
+    }
+
+    const queryStr = params.toString()
+    router.push(`/shop${queryStr ? `?${queryStr}` : ''}`, { scroll: false })
+  }
+
+  // Handle category button click
+  const handleCategoryChange = (cat: string) => {
+    setCategory(cat)
+    setSubCategory('')
+    updateUrlParams(cat, '')
+  }
+
+  // Handle subcategory button click
+  const handleSubCategoryChange = (sub: string) => {
+    setSubCategory(sub)
+    updateUrlParams(category, sub)
+  }
 
   useEffect(() => {
     const savedCart = localStorage.getItem('foc_cart')
@@ -106,22 +142,35 @@ export default function ShopPage() {
 
         <div className="flex flex-wrap gap-2 mb-4">
           {Object.keys(CATEGORIES).map(cat => (
-            <button key={cat} onClick={() => { setCategory(cat); setSubCategory('') }} className={`px-5 py-2.5 rounded-full text-sm font-medium transition ${category === cat ? 'bg-ink text-white' : 'bg-white border border-black/5 text-muted hover:text-ink'}`}>
+            <button key={cat} onClick={() => handleCategoryChange(cat)} className={`px-5 py-2.5 rounded-full text-sm font-medium transition ${category === cat ? 'bg-ink text-white' : 'bg-white border border-black/5 text-muted hover:text-ink'}`}>
               {cat}
             </button>
           ))}
         </div>
 
         {category !== 'All' && CATEGORIES[category].length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-12 pb-8 border-b border-black/5">
-            <button onClick={() => setSubCategory('')} className={`px-4 py-2 rounded-full text-xs font-medium transition ${subCategory === '' ? 'bg-primary text-white' : 'bg-paper border border-black/5 text-muted'}`}>
-              All {category}
-            </button>
-            {CATEGORIES[category].map(sub => (
-              <button key={sub} onClick={() => setSubCategory(sub)} className={`px-4 py-2 rounded-full text-xs font-medium transition ${subCategory === sub ? 'bg-primary text-white' : 'bg-paper border border-black/5 text-muted'}`}>
-                {sub}
+          <div className="flex flex-col gap-3 mb-12 pb-8 border-b border-black/5">
+            {category === 'Fashion' && (
+<div className="text-xs uppercase tracking-wider font-semibold text-primary flex items-center gap-2 flex-wrap">
+  <span>All Fashion is from ARRAYED LIKE NON (ALN) for partnership, exclusive orders, complaints etc</span>
+  <a 
+    href="mailto:arrayedlikenon@gmail.com" 
+    className="inline-flex items-center gap-1.5 hover:underline lowercase font-normal text-muted hover:text-primary transition"
+  >
+    <i className="fas fa-envelope text-primary"></i> arrayedlikenon@gmail.com
+  </a>
+</div>
+            )}
+            <div className="flex flex-wrap gap-2">
+              <button onClick={() => handleSubCategoryChange('')} className={`px-4 py-2 rounded-full text-xs font-medium transition ${subCategory === '' ? 'bg-primary text-white' : 'bg-paper border border-black/5 text-muted'}`}>
+                All {category}
               </button>
-            ))}
+              {CATEGORIES[category].map(sub => (
+                <button key={sub} onClick={() => handleSubCategoryChange(sub)} className={`px-4 py-2 rounded-full text-xs font-medium transition ${subCategory === sub ? 'bg-primary text-white' : 'bg-paper border border-black/5 text-muted'}`}>
+                  {sub}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 

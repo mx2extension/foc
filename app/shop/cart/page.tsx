@@ -19,6 +19,7 @@ export default function CartPage() {
   const totalAmount = cart.reduce((sum, p) => sum + (p.selling_price_ngn * p.qty), 0)
 
   const updateQty = (index: number, newQty: number) => {
+    // Strictly prevent any quantity less than 1
     if (newQty < 1) {
       removeFromCart(index)
       return

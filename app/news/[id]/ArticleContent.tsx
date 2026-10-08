@@ -1,12 +1,17 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 export default function ArticleContent({ article }: { article: any }) {
   const [toast, setToast] = useState<string | null>(null)
+  const [shareUrl, setShareUrl] = useState('')
 
-  const shareUrl = typeof window !== 'undefined' ? window.location.href : ''
-  const shareText = `Check out "${article.title}" on FindOneCampus!`
+  useEffect(() => {
+    setShareUrl(window.location.href)
+  }, [])
+
+  const shareText = `Check out "${article?.title || 'this article'}" on FindOneCampus!`
+  const authorInitial = article?.author ? article.author.charAt(0) : 'F'
 
   return (
     <div className="py-32 relative">
@@ -18,24 +23,35 @@ export default function ArticleContent({ article }: { article: any }) {
         <div className="flex items-center gap-3 text-xs text-muted uppercase tracking-wider mb-6">
           <span className="text-primary font-medium">News</span>
           <span className="w-1 h-1 rounded-full bg-muted"></span>
-          <span>{new Date(article.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+          <span>
+            {article?.created_at 
+              ? new Date(article.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+              : ''}
+          </span>
         </div>
-        <h1 className="serif mb-6" style={{ fontSize: 'clamp(36px, 6vw, 64px)', lineHeight: 1.05, letterSpacing: '-0.02em' }}>{article.title}</h1>
-        <p className="text-xl text-muted leading-relaxed mb-10 font-light">{article.excerpt}</p>
+        <h1 className="serif mb-6" style={{ fontSize: 'clamp(36px, 6vw, 64px)', lineHeight: 1.05, letterSpacing: '-0.02em' }}>{article?.title}</h1>
+        {article?.excerpt && <p className="text-xl text-muted leading-relaxed mb-10 font-light">{article.excerpt}</p>}
+        
         <div className="flex items-center gap-4 mb-12 pb-8 border-b border-black/5">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-semibold">{article.author.charAt(0)}</div>
-          <div><div className="font-semibold">{article.author}</div><div className="text-sm text-muted">FindOneCampus Editorial</div></div>
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-semibold">
+            {authorInitial}
+          </div>
+          <div>
+            <div className="font-semibold">{article?.author || 'FindOneCampus Team'}</div>
+            <div className="text-sm text-muted">FindOneCampus Editorial</div>
+          </div>
         </div>
-        {article.image_url && (
+
+        {article?.image_url && (
           <div className="aspect-video w-full rounded-3xl overflow-hidden mb-12 shadow-xl">
-            <img src={article.image_url} alt={article.title} className="w-full h-full object-cover" />
+            <img src={article.image_url} alt={article?.title || 'Article image'} className="w-full h-full object-cover" />
           </div>
         )}
         
         {/* Render HTML Content Safely */}
         <div 
           className="prose prose-lg max-w-none text-lg text-ink/80 leading-relaxed space-y-4"
-          dangerouslySetInnerHTML={{ __html: article.content }} 
+          dangerouslySetInnerHTML={{ __html: article?.content || '' }} 
         />
 
         {/* Share Buttons */}

@@ -81,7 +81,8 @@ export default function BecomeProvider() {
       city: form.city.trim(),
     }
 
-    if (!trimmedForm.full_name || !trimmedForm.email || !trimmedForm.category || !trimmedForm.profession || !trimmedForm.bio || !trimmedForm.skills || !localNumber || !trimmedForm.country || !trimmedForm.city) {
+    // Removed !trimmedForm.skills from validation check
+    if (!trimmedForm.full_name || !trimmedForm.email || !trimmedForm.category || !trimmedForm.profession || !trimmedForm.bio || !localNumber || !trimmedForm.country || !trimmedForm.city) {
       alert('Please fill out all required fields properly.')
       return
     }
@@ -114,7 +115,7 @@ export default function BecomeProvider() {
         category: trimmedForm.category,
         profession: trimmedForm.profession,
         bio: trimmedForm.bio,
-        skills: trimmedForm.skills.split(',').map((s: string) => s.trim()).filter(Boolean),
+        skills: trimmedForm.skills ? trimmedForm.skills.split(',').map((s: string) => s.trim()).filter(Boolean) : [],
         whatsapp: trimmedForm.whatsapp,
         country: trimmedForm.country,
         city: trimmedForm.city,
@@ -191,8 +192,8 @@ export default function BecomeProvider() {
         </div>
 
         <div>
-          <label className="text-sm font-medium mb-2 block">Skills (comma separated) *</label>
-          <input name="skills" required value={form.skills} onChange={handleChange} className="form-input" placeholder="branding, strategy, copywriting, research" />
+          <label className="text-sm font-medium mb-2 block">Skills (comma separated)</label>
+          <input name="skills" value={form.skills} onChange={handleChange} className="form-input" placeholder="branding, strategy, copywriting, research" />
         </div>
 
         <div className="grid sm:grid-cols-2 gap-5">

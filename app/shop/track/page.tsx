@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 
 const TRACKING_STEPS = [
@@ -12,6 +13,7 @@ const TRACKING_STEPS = [
 ]
 
 export default function TrackOrderPage() {
+  const router = useRouter()
   const [searchTerm, setSearchTerm] = useState('')
   const [orders, setOrders] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
@@ -51,6 +53,13 @@ export default function TrackOrderPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-32">
+      <button 
+        onClick={() => router.back()} 
+        className="inline-flex items-center gap-2 text-sm text-muted hover:text-primary transition mb-8 bg-transparent border-none cursor-pointer"
+      >
+        <i className="fas fa-arrow-left text-xs"></i> Back
+      </button>
+
       <h1 className="serif text-4xl mb-8 text-center">Track Your Order</h1>
       
       <form onSubmit={handleTrack} className="premium-card p-6 space-y-4 mb-12">

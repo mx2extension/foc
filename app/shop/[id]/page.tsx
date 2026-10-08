@@ -11,6 +11,7 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [activeImage, setActiveImage] = useState('')
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -44,14 +45,47 @@ export default function ProductDetailPage() {
     window.location.href = '/shop/cart'
   }
 
+  const handleShare = async () => {
+    const currentUrl = window.location.href
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: product?.title,
+          text: `Check out ${product?.title} on FindOneCampus Shop!`,
+          url: currentUrl,
+        })
+      } else {
+        await navigator.clipboard.writeText(currentUrl)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2500)
+      }
+    } catch (err) {
+      // Fallback if share sheet is dismissed or unsupported
+      navigator.clipboard.writeText(currentUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2500)
+    }
+  }
+
   if (loading) return <div className="py-32 text-center text-muted">Loading product...</div>
   if (!product) return <div className="py-32 text-center text-muted">Product not found. <Link href="/shop" className="text-primary">Back to shop</Link></div>
 
   return (
     <div className="max-w-6xl mx-auto px-6 lg:px-10 py-32">
-      <Link href="/shop" className="mb-12 inline-flex items-center gap-2 text-sm text-muted hover:text-primary transition">
-        <i className="fas fa-arrow-left text-xs"></i> Back to all products
-      </Link>
+      <div className="flex justify-between items-center mb-12">
+        <Link href="/shop" className="inline-flex items-center gap-2 text-sm text-muted hover:text-primary transition">
+          <i className="fas fa-arrow-left text-xs"></i> Back to all products
+        </Link>
+        
+        <button 
+          onClick={handleShare}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-black/10 bg-white text-xs font-medium text-ink hover:border-primary transition shadow-sm"
+          title="Share Product"
+        >
+          <i className={`fas ${copied ? 'fa-check text-green-600' : 'fa-share-nodes'}`}></i>
+          {copied ? 'Link Copied!' : 'Share Product'}
+        </button>
+      </div>
 
       <div className="grid md:grid-cols-2 gap-12 lg:gap-16">
         {/* Image Gallery */}
