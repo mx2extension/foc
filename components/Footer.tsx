@@ -193,7 +193,7 @@ export default function Footer() {
         {/* BOTTOM ROW - CENTERED STYLISH GLOWING GREEN LOGO */}
         <div className="flex justify-center items-center pb-6">
           <a 
-            href="https://chinemeremking.netlify.app/" 
+            href="https://crbvx.netlify.app/" 
             target="_blank" 
             rel="noopener noreferrer" 
             className="font-serif italic font-extrabold text-lg md:text-xl tracking-[0.25em] text-[#4ade80] hover:text-emerald-300 drop-shadow-[0_0_12px_rgba(74,222,128,0.4)] transition-all duration-300"
