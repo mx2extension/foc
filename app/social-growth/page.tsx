@@ -3,16 +3,15 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 // Configuration: Markups
-const REGULAR_MARKUP = 2 
+const REGULAR_MARKUP = 3 
 const VIEWS_MARKUP = 30 
 
 export default function SocialGrowthPage() {
   const [services, setServices] = useState<any[]>([])
-  const [balance, setBalance] = useState(0)
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState('')
-  const [successOrder, setSuccessOrder] = useState('')
-  const [waConfirmLink, setWaConfirmLink] = useState('')
+  const [orderPlaced, setOrderPlaced] = useState(false)
+  const [waLink, setWaLink] = useState('')
 
   // Form state
   const [email, setEmail] = useState('')
@@ -33,22 +32,17 @@ export default function SocialGrowthPage() {
 
   const fetchServices = async () => {
     setLoading(true)
-    const servicesRes = await fetch('/api/smm', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'services' })
-    })
-    const servicesData = await servicesRes.json()
-    if (Array.isArray(servicesData)) setServices(servicesData)
-
-    const balanceRes = await fetch('/api/smm', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'balance' })
-    })
-    const balanceData = await balanceRes.json()
-    if (balanceData.balance) setBalance(parseFloat(balanceData.balance))
-    
+    try {
+      const servicesRes = await fetch('/api/smm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'services' })
+      })
+      const servicesData = await servicesRes.json()
+      if (Array.isArray(servicesData)) setServices(servicesData)
+    } catch (error) {
+      showToast('Error loading services.')
+    }
     setLoading(false)
   }
 
@@ -84,71 +78,16 @@ export default function SocialGrowthPage() {
 
   const totalCost = calculateTotal()
 
-  const triggerFallback = () => {
-    const rawMsg = `Hello MX2ViralWorld, I just paid for my order.\n\nService: ${selectedService?.name}\nLink: ${link}\nQuantity: ${quantity}\nTotal Paid: ₦${totalCost.toLocaleString()}\n\nAttached is the payment screenshot.`
-    const waMsg = encodeURIComponent(rawMsg)
-
-    window.dispatchEvent(new CustomEvent('show-fallback-payment', { 
-      detail: { 
-        amount: totalCost.toLocaleString(), 
-        description: 'MX2ViralWorld Social Media Service',
-        whatsappMessage: waMsg 
-      } 
-    }))
-  }
-
-  const initiateFlutterwave = () => {
-    const flwKey = process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY
-
-    if (!flwKey || typeof window === 'undefined' || !(window as any).FlutterwaveCheckout) {
-      triggerFallback()
-      return
-    }
-
-    setLoading(true)
-    const reference = `SMM_${Date.now()}`
-    setSuccessOrder('')
-    setWaConfirmLink('')
-
-    try {
-      (window as any).FlutterwaveCheckout({
-        public_key: flwKey, 
-        tx_ref: reference,
-        amount: totalCost,
-        currency: 'NGN',
-        payment_options: 'card, banktransfer, ussd',
-        customer: {
-          email: email,
-        },
-        customization: {
-          title: "MX2ViralWorld",
-          description: "Social Media Growth Service",
-          logo: "https://res.cloudinary.com/drnrbfltr/image/upload/v1786364796/ed0296b5-7a89-4ed7-bc64-5d1ad018de78.png"
-        },
-        callback: function(data: any) {
-          if (data.status === 'successful' || data.status === 'completed') {
-            placeSmmOrder(reference)
-          } else {
-            showToast('Payment was not successful. Please try again.')
-            setLoading(false)
-          }
-        },
-        onclose: function() {
-          triggerFallback()
-          setLoading(false)
-        }
-      })
-    } catch (error) {
-      showToast('Error initiating payment.')
-      setLoading(false)
-    }
-  }
-
-  const handleOrder = async (e: React.FormEvent) => {
+  const handleProceedToPayment = (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!email) {
       showToast('Please enter your email to proceed.')
+      return
+    }
+
+    if (!serviceId) {
+      showToast('Please select a service.')
       return
     }
 
@@ -157,68 +96,28 @@ export default function SocialGrowthPage() {
       return
     }
 
-    initiateFlutterwave()
+    // Fully pre-filled WhatsApp message containing all order and Opay payment details
+    const rawMsg = `Hello Chinemerem, I want to place a social media order and make my payment.\n\n📋 *Order Details*\n• Email: ${email}\n• Service: ${selectedService?.name}\n• Link: ${link}\n• Quantity: ${quantity}\n• Total Amount: ₦${totalCost.toLocaleString()}\n\n🏦 *Payment Info*\n• Bank: Opay\n• Account Number: 8149193063\n• Account Name: Chinemerem Nwankpa\n\n[Attached is my payment screenshot]`
+    const encodedMsg = encodeURIComponent(rawMsg)
+    
+    setWaLink(`https://wa.me/2348149193063?text=${encodedMsg}`)
+    setOrderPlaced(true)
   }
 
-  const placeSmmOrder = async (reference: string) => {
-    const currentSvcName = selectedService?.name || 'Social Service'
-    const currentLink = link
-    const currentQty = quantity
-
-    const res = await fetch('/api/smm', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        service_id: serviceId, 
-        service_name: currentSvcName,
-        link: currentLink, 
-        quantity: currentQty, 
-        amount_paid: totalCost,
-        email: email,
-        reference: reference
-      })
-    })
-    const data = await res.json()
-
-    if (data.status === 'success' || data.status === 'queued') {
-      const ticketId = data.status === 'success' ? String(data.order) : `MX2-${Date.now().toString().slice(-6)}`
-      
-      setSuccessOrder(ticketId)
-      setOrderId(ticketId)
-      
-      const waMsg = `Hello MX2ViralWorld, my order has been placed.\n\nTicket ID: ${ticketId}\nService: ${currentSvcName}\nLink: ${currentLink}\nQuantity: ${currentQty}\n\nI am sending this to confirm and track my order.`
-      setWaConfirmLink(`https://wa.me/2349017380098?text=${encodeURIComponent(waMsg)}`)
-      
-      setLink('')
-      fetchServices() 
-
-      if (data.status === 'queued') {
-        showToast('Payment successful! Your order is now processing.')
-      }
-    } else {
-      showToast(`Payment received, but order failed. Contact support with ref: ${reference}`)
-    }
-    setLoading(false)
+  const handleReset = () => {
+    setOrderPlaced(false)
+    setLink('')
+    setServiceId('')
   }
 
   const handleCheckStatus = async () => {
-    if (!orderId) return
-    const res = await fetch('/api/smm', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'status', order: orderId })
-    })
-    const data = await res.json()
-    if (data.status) {
-      showToast(`Order ${orderId}: ${data.status.toUpperCase()} (Remains: ${data.remains})`)
-    } else {
-      showToast(`Order ${orderId} is still processing in our queue.`)
+    if (!orderId) {
+      showToast('Please enter a valid Order/Ticket ID.')
+      return
     }
-  }
-
-  const handleCopyTrackingId = () => {
-    navigator.clipboard.writeText(successOrder)
-    showToast('Tracking ID Copied!')
+    
+    // Fallback status check alert
+    showToast(`Order ${orderId} is currently being processed manually via WhatsApp.`)
   }
 
   return (
@@ -244,201 +143,181 @@ export default function SocialGrowthPage() {
             Boost your social <span className="serif-italic gradient-text">presence.</span>
           </h1>
           <p className="text-lg text-muted max-w-2xl mx-auto">
-            Seamlessly grow your audience across all major platforms. Select a service, enter your link, and watch your numbers grow.
+            Seamlessly grow your audience across all major platforms. Select a service, fill in your details, and complete your bank transfer via WhatsApp.
           </p>
         </div>
 
         {/* Main Card */}
         <div className="premium-card p-8 md:p-12 mb-8">
-          {successOrder ? (
-            <div className="text-center space-y-6 py-8">
+          {orderPlaced ? (
+            <div className="text-center space-y-6 max-w-md mx-auto py-4">
               <div>
-                <i className="fas fa-check-circle text-green-600 text-5xl mb-4"></i>
-                <h2 className="serif text-3xl mb-2">Payment Successful!</h2>
-                <p className="text-muted">Your order has been placed and is now processing.</p>
-              </div>
-              
-              <div className="max-w-md mx-auto">
-                <p className="text-sm text-muted mb-3">Your Order Tracking ID is:</p>
-                <div className="flex items-center justify-between bg-paper p-4 rounded-xl border border-black/5 shadow-sm">
-                  <span className="font-bold text-ink text-lg tracking-wider">{successOrder}</span>
-                  <button 
-                    onClick={handleCopyTrackingId}
-                    className="bg-primary text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-opacity-90 transition flex items-center gap-2"
-                  >
-                    <i className="fas fa-copy"></i> Copy ID
-                  </button>
-                </div>
-                <p className="text-[11px] text-red-500 font-medium mt-3 animate-pulse">
-                  ⚠️ Please copy and save this ID to track your order status below.
-                </p>
+                <i className="fas fa-wallet text-amber-600 text-5xl mb-3"></i>
+                <h2 className="serif text-3xl mb-1">Complete Your Bank Transfer</h2>
+                <p className="text-sm text-muted">Transfer the exact total amount to the account details below:</p>
               </div>
 
-              <div className="pt-6 border-t border-black/5 max-w-md mx-auto">
-                <p className="text-sm text-muted mb-4">Click below to send us a quick DM on WhatsApp confirming your order:</p>
+              <div className="bg-paper p-5 rounded-2xl border border-amber-200 text-left space-y-3 text-sm shadow-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted">Bank Name:</span>
+                  <span className="font-bold text-ink">Opay</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted">Account Number:</span>
+                  <span className="font-bold text-primary select-all text-base">8149193063</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted">Account Name:</span>
+                  <span className="font-bold text-ink">Chinemerem Nwankpa</span>
+                </div>
+                <div className="flex justify-between pt-2 border-t border-black/5">
+                  <span className="text-muted font-medium">Amount to Pay:</span>
+                  <span className="font-bold text-emerald-600 text-xl">₦{totalCost.toLocaleString()}</span>
+                </div>
+              </div>
+
+              <p className="text-xs text-muted">
+                After making the transfer, click the button below. Your order details and payment message are already fully pre-filled—just attach your transfer screenshot and send!
+              </p>
+
+              <div className="space-y-3 pt-2">
                 <a 
-                  href={waConfirmLink} 
+                  href={waLink} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="btn-primary w-full justify-center"
+                  className="btn-primary w-full justify-center shadow-lg"
                   style={{ background: '#25D366', boxShadow: '0 20px 40px -15px rgba(37,211,102,0.4)' }}
                 >
-                  <i className="fab fa-whatsapp text-lg"></i> Send DM to Confirm
+                  <i className="fab fa-whatsapp text-lg"></i> Send Pre-filled WhatsApp Message
                 </a>
+                
+                <button 
+                  onClick={handleReset}
+                  className="text-sm text-muted hover:text-ink transition block mx-auto py-2"
+                >
+                  ← Edit Order Details
+                </button>
               </div>
-              
-              <button 
-                onClick={() => setSuccessOrder('')} 
-                className="text-sm text-primary font-medium hover:underline mt-4"
-              >
-                Place Another Order
-              </button>
+            </div>
+          ) : loading && services.length === 0 ? (
+            <div className="text-center py-16 text-muted">
+              <i className="fas fa-spinner fa-spin text-3xl mb-4 text-primary"></i>
+              <p>Loading available services...</p>
             </div>
           ) : (
-            <>
-              {loading && services.length === 0 ? (
-                <div className="text-center py-16 text-muted">
-                  <i className="fas fa-spinner fa-spin text-3xl mb-4 text-primary"></i>
-                  <p>Loading available services...</p>
+            <form onSubmit={handleProceedToPayment} className="grid md:grid-cols-2 gap-8">
+              <div className="space-y-5">
+                <div>
+                  <label className="text-sm font-medium text-muted block mb-2">Your Email</label>
+                  <input 
+                    type="email" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                    required
+                    placeholder="you@email.com"
+                    className="form-input"
+                  />
                 </div>
-              ) : (
-                <form onSubmit={handleOrder} className="grid md:grid-cols-2 gap-8">
-                  <div className="space-y-5">
-                    <div>
-                      <label className="text-sm font-medium text-muted block mb-2">Your Email</label>
-                      <input 
-                        type="email" 
-                        value={email} 
-                        onChange={(e) => setEmail(e.target.value)} 
-                        required
-                        placeholder="you@email.com"
-                        className="form-input"
-                      />
-                    </div>
 
-                    <div>
-                      <label className="text-sm font-medium text-muted block mb-2">Service Type (Category)</label>
-                      <select 
-                        value={selectedCategory} 
-                        onChange={(e) => {
-                          setSelectedCategory(e.target.value)
-                          setServiceId('')
-                        }}
-                        className="form-input"
-                      >
-                        <option value="">All Categories</option>
-                        {categories.map((cat, i) => (
-                          <option key={i} value={cat}>{cat}</option>
-                        ))}
-                      </select>
-                    </div>
+                <div>
+                  <label className="text-sm font-medium text-muted block mb-2">Service Type (Category)</label>
+                  <select 
+                    value={selectedCategory} 
+                    onChange={(e) => {
+                      setSelectedCategory(e.target.value)
+                      setServiceId('')
+                    }}
+                    className="form-input"
+                  >
+                    <option value="">All Categories</option>
+                    {categories.map((cat, i) => (
+                      <option key={i} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
 
-                    <div>
-                      <label className="text-sm font-medium text-muted block mb-2">Select Service</label>
-                      <select 
-                        value={serviceId} 
-                        onChange={(e) => {
-                          setServiceId(e.target.value)
-                          const svc = services.find((s: any) => String(s.service) === e.target.value)
-                          if (svc) {
-                            const apiMin = parseInt(svc.min) || 500
-                            setQuantity(Math.max(500, apiMin))
-                          }
-                        }}
-                        required
-                        className="form-input"
-                      >
-                        <option value="">Choose a service...</option>
-                        {filteredServices.map((svc: any) => {
-                          const markup = getMarkup(svc.name)
-                          return (
-                            <option key={svc.service} value={svc.service}>
-                              {svc.name} (₦{(parseFloat(svc.rate) * markup).toFixed(2)}/1000)
-                            </option>
-                          )
-                        })}
-                      </select>
-                    </div>
-                  </div>
+                <div>
+                  <label className="text-sm font-medium text-muted block mb-2">Select Service</label>
+                  <select 
+                    value={serviceId} 
+                    onChange={(e) => {
+                      setServiceId(e.target.value)
+                      const svc = services.find((s: any) => String(s.service) === e.target.value)
+                      if (svc) {
+                        const apiMin = parseInt(svc.min) || 500
+                        setQuantity(Math.max(500, apiMin))
+                      }
+                    }}
+                    required
+                    className="form-input"
+                  >
+                    <option value="">Choose a service...</option>
+                    {filteredServices.map((svc: any) => {
+                      const markup = getMarkup(svc.name)
+                      return (
+                        <option key={svc.service} value={svc.service}>
+                          {svc.name} (₦{(parseFloat(svc.rate) * markup).toFixed(2)}/1000)
+                        </option>
+                      )
+                    })}
+                  </select>
+                </div>
+              </div>
 
-                  <div className="space-y-5 flex flex-col">
-                    <div>
-                      <label className="text-sm font-medium text-muted block mb-2">Link</label>
-                      <input 
-                        type="text" 
-                        value={link} 
-                        onChange={(e) => setLink(e.target.value)} 
-                        required
-                        placeholder={getLinkPlaceholder(selectedService?.name)}
-                        className="form-input"
-                      />
-                    </div>
+              <div className="space-y-5 flex flex-col">
+                <div>
+                  <label className="text-sm font-medium text-muted block mb-2">Link</label>
+                  <input 
+                    type="text" 
+                    value={link} 
+                    onChange={(e) => setLink(e.target.value)} 
+                    required
+                    placeholder={getLinkPlaceholder(selectedService?.name)}
+                    className="form-input"
+                  />
+                </div>
 
-                    <div>
-                      <label className="text-sm font-medium text-muted block mb-2">
-                        Quantity 
-                        <span className="text-muted/70 ml-2 text-xs">(Min: 500, Max: 20,000)</span>
-                      </label>
-                      <input 
-                        type="number" 
-                        value={quantity} 
-                        onChange={(e) => setQuantity(Number(e.target.value))} 
-                        required
-                        min={500}
-                        max={20000}
-                        className="form-input"
-                      />
-                    </div>
+                <div>
+                  <label className="text-sm font-medium text-muted block mb-2">
+                    Quantity 
+                    <span className="text-muted/70 ml-2 text-xs">(Min: 500, Max: 20,000)</span>
+                  </label>
+                  <input 
+                    type="number" 
+                    value={quantity} 
+                    onChange={(e) => setQuantity(Number(e.target.value))} 
+                    required
+                    min={500}
+                    max={20000}
+                    className="form-input"
+                  />
+                </div>
 
-                    <div className="mt-auto bg-paper p-5 rounded-2xl border border-black/5 flex justify-between items-center">
-                      <span className="text-sm text-muted font-medium">Total Cost:</span>
-                      <span className="serif text-3xl gradient-text">₦{totalCost.toLocaleString()}</span>
-                    </div>
+                <div className="mt-auto bg-paper p-5 rounded-2xl border border-black/5 flex justify-between items-center">
+                  <span className="text-sm text-muted font-medium">Total Amount:</span>
+                  <span className="serif text-3xl gradient-text">₦{totalCost.toLocaleString()}</span>
+                </div>
 
-                    <button 
-                      type="submit" 
-                      disabled={loading || !serviceId} 
-                      className="btn-primary w-full justify-center mt-2"
-                    >
-                      {loading ? 'Processing...' : <><i className="fas fa-lock mr-2"></i> Pay & Place Order</>}
-                    </button>
-                  </div>
-                </form>
-              )}
-            </>
+                <button 
+                  type="submit" 
+                  disabled={!serviceId} 
+                  className="btn-primary w-full justify-center mt-2 disabled:opacity-50"
+                >
+                  <i className="fas fa-paper-plane mr-2"></i> Proceed to Bank Transfer
+                </button>
+              </div>
+            </form>
           )}
-        </div>
-
-        {/* Order Status Checker Card */}
-        <div className="premium-card p-6 md:p-8 mb-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-4">
-            <div>
-              <h3 className="serif text-2xl">Check Order Status</h3>
-              <p className="text-sm text-muted">Enter your tracking ID to see your order progress.</p>
-            </div>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <input 
-              type="text" 
-              value={orderId} 
-              onChange={(e) => setOrderId(e.target.value)} 
-              placeholder="Enter Ticket/Order ID"
-              className="form-input flex-1"
-            />
-            <button onClick={handleCheckStatus} className="btn-secondary justify-center">
-              Check Status <i className="fas fa-search text-xs ml-2"></i>
-            </button>
-          </div>
         </div>
 
         {/* Support Card */}
         <div className="text-center mt-12">
-          <p className="text-sm text-muted mb-4">Need help or want to fast-track an order?</p>
+          <p className="text-sm text-muted mb-4">Need help or want to speak with support?</p>
           <a 
-            href="https://wa.me/2349017380098?text=Hello%20MX2ViralWorld,%20I%20need%20assistance" 
+            href="https://wa.me/2348149193063?text=Hello%20Chinemerem,%20I%20need%20assistance%20with%20my%20social%20media%20order." 
             target="_blank" 
             rel="noopener noreferrer"
-            className="btn-secondary"
+            className="btn-secondary inline-flex items-center gap-2"
           >
             <i className="fab fa-whatsapp text-lg text-[#25D366]"></i> Chat for Support / Funding
           </a>

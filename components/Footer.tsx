@@ -189,13 +189,17 @@ export default function Footer() {
         </div>
 
         <div className="h-px bg-white/10 mb-8"></div>
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-400">
-          <p>© {new Date().getFullYear()} FindOneCampus. The world is one big campus.</p>
-          <p className="flex items-center gap-2">
-            <span>Crafted with care</span>
-            <span className="w-1 h-1 rounded-full bg-accent"></span>
-            <span>Made for the curious</span>
-          </p>
+        
+        {/* BOTTOM ROW - CENTERED STYLISH GLOWING GREEN LOGO */}
+        <div className="flex justify-center items-center pb-6">
+          <a 
+            href="https://chinemeremking.netlify.app/" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="font-serif italic font-extrabold text-lg md:text-xl tracking-[0.25em] text-[#4ade80] hover:text-emerald-300 drop-shadow-[0_0_12px_rgba(74,222,128,0.4)] transition-all duration-300"
+          >
+            CRBVX
+          </a>
         </div>
       </div>
     </footer>

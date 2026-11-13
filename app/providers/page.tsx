@@ -21,7 +21,7 @@ function ProvidersContent() {
   const [search, setSearch] = useState(initialSearch)
   const [category, setCategory] = useState('')
   const [country, setCountry] = useState('')
-  const [visibleCount, setVisibleCount] = useState(12) // Start by showing 12 providers
+  const [visibleCount, setVisibleCount] = useState(12)
   
   // Toggle Filters
   const [onlyVerified, setOnlyVerified] = useState(false)
@@ -67,16 +67,14 @@ function ProvidersContent() {
           const aScore = (a.verification_status === 'verified' ? 2 : 0) + (a.membership === 'pro' ? 1 : 0)
           const bScore = (b.verification_status === 'verified' ? 2 : 0) + (b.membership === 'pro' ? 1 : 0)
           
-          // If scores are different, prioritize the higher badge (Verified > Pro > Free)
           if (aScore !== bScore) {
             return bScore - aScore
           }
           
-          // If scores are the same, scramble them randomly on every load/refresh!
           return Math.random() - 0.5
         })
         setProviders(sortedData)
-        setVisibleCount(12) // Reset visible count to 12 when filters change
+        setVisibleCount(12)
       } else {
         setProviders([])
       }
@@ -85,54 +83,54 @@ function ProvidersContent() {
   }, [search, category, country, onlyVerified, onlyPro, onlyInternship])
 
   return (
-    <div className="max-w-7xl mx-auto px-6 lg:px-10 py-32">
-      <div className="inline-flex items-center gap-2.5 text-xs tracking-[0.25em] uppercase text-primary font-medium mb-6">
-        <span className="w-6 h-px bg-primary"></span>
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-10 py-10 sm:py-32">
+      <div className="inline-flex items-center gap-2 text-[10px] sm:text-xs tracking-[0.2em] uppercase text-primary font-medium mb-2 sm:mb-6">
+        <span className="w-4 sm:w-5 h-px bg-primary"></span>
         The directory
       </div>
-      <h1 className="serif mb-6" style={{ fontSize: 'clamp(48px, 8vw, 96px)', lineHeight: 0.95, letterSpacing: '-0.02em' }}>
+      <h1 className="serif mb-2 sm:mb-6 text-3xl sm:text-6xl lg:text-8xl" style={{ lineHeight: 0.95, letterSpacing: '-0.02em' }}>
         All <span className="serif-italic gradient-text">Providers.</span>
       </h1>
-      <p className="text-lg text-muted mb-12 max-w-xl">
+      <p className="text-xs sm:text-lg text-muted mb-4 sm:mb-12 max-w-xl">
         Search trusted professionals across every field. Filter by category, skills, country, or badges.
       </p>
 
-      {/* Search and Dropdowns */}
-      <div className="grid md:grid-cols-3 gap-3 mb-6">
+      {/* Search and Dropdowns: Compact 2-column on mobile, 3-column on desktop */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
         <input 
           type="text" 
-          placeholder="Search by name or skill..." 
-          className="form-input" 
+          placeholder="Search name or skill..." 
+          className="form-input text-xs sm:text-base py-2 col-span-2 md:col-span-1" 
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <select className="form-input" value={category} onChange={(e) => setCategory(e.target.value)}>
+        <select className="form-input text-xs sm:text-base py-2" value={category} onChange={(e) => setCategory(e.target.value)}>
           <option value="">All categories</option>
           {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
         </select>
-        <select className="form-input" value={country} onChange={(e) => setCountry(e.target.value)}>
+        <select className="form-input text-xs sm:text-base py-2" value={country} onChange={(e) => setCountry(e.target.value)}>
           <option value="">All countries</option>
           {countries.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
       </div>
 
-      {/* Toggle Badges */}
-      <div className="flex flex-wrap gap-2 mb-10 border-b border-black/5 pb-4">
+      {/* Toggle Badges: Inline wrapping row so they don't stack awkwardly */}
+      <div className="flex flex-row flex-wrap items-center gap-1.5 mb-6 border-b border-black/5 pb-3">
         <button 
           onClick={() => setOnlyVerified(!onlyVerified)}
-          className={`px-5 py-2.5 rounded-full text-sm font-medium transition flex items-center gap-2 ${onlyVerified ? 'bg-blue-500 text-white' : 'bg-paper border border-black/5 text-muted hover:text-ink'}`}
+          className={`px-3 py-1.5 rounded-full text-[11px] sm:text-sm font-medium transition flex items-center gap-1 whitespace-nowrap ${onlyVerified ? 'bg-blue-500 text-white' : 'bg-paper border border-black/5 text-muted hover:text-ink'}`}
         >
           <i className="fas fa-check-circle"></i> Verified Only
         </button>
         <button 
           onClick={() => setOnlyPro(!onlyPro)}
-          className={`px-5 py-2.5 rounded-full text-sm font-medium transition flex items-center gap-2 ${onlyPro ? 'bg-accent text-white' : 'bg-paper border border-black/5 text-muted hover:text-ink'}`}
+          className={`px-3 py-1.5 rounded-full text-[11px] sm:text-sm font-medium transition flex items-center gap-1 whitespace-nowrap ${onlyPro ? 'bg-accent text-white' : 'bg-paper border border-black/5 text-muted hover:text-ink'}`}
         >
           <i className="fas fa-crown"></i> Pro Members
         </button>
         <button 
           onClick={() => setOnlyInternship(!onlyInternship)}
-          className={`px-5 py-2.5 rounded-full text-sm font-medium transition flex items-center gap-2 ${onlyInternship ? 'bg-green-600 text-white' : 'bg-paper border border-black/5 text-muted hover:text-ink'}`}
+          className={`px-3 py-1.5 rounded-full text-[11px] sm:text-sm font-medium transition flex items-center gap-1 whitespace-nowrap ${onlyInternship ? 'bg-green-600 text-white' : 'bg-paper border border-black/5 text-muted hover:text-ink'}`}
         >
           <i className="fas fa-shield-halved"></i> Internship Ready
         </button>
@@ -142,17 +140,17 @@ function ProvidersContent() {
         <p className="text-center py-20 text-muted">No providers match your search. Try different filters.</p>
       ) : (
         <>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Only slice the array to show the visibleCount amount */}
+          {/* 2x2 Grid on mobile (2 columns), 3 columns on desktop */}
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-6">
             {providers.slice(0, visibleCount).map((p: any) => <ProviderCard key={p.id} provider={p} />)}
           </div>
           
           {/* View More Button */}
           {providers.length > visibleCount && (
-            <div className="text-center mt-12">
+            <div className="text-center mt-8">
               <button 
                 onClick={() => setVisibleCount(visibleCount + 12)} 
-                className="btn-secondary !py-3 !px-8"
+                className="btn-secondary !py-2.5 !px-6 text-xs sm:text-base"
               >
                 View More Providers <i className="fas fa-arrow-down ml-2 text-xs"></i>
               </button>

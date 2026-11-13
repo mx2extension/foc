@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import * as countryCodes from 'country-codes-list'
@@ -29,11 +29,16 @@ GLOBAL_CODES.forEach(c => {
   CODE_TO_COUNTRY_MAP[c.code] = c.name;
 });
 
-const MAX_BIO_LENGTH = 140; // Strict tweet-length short bio
+const MAX_BIO_LENGTH = 140;
 
 export default function BecomeProvider() {
   const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [formError, setFormError] = useState('')
+  const formRef = useRef<HTMLFormElement>(null)
   const router = useRouter()
+
   const [form, setForm] = useState({
     full_name: '', email: '', category: '', profession: '', bio: '', skills: '', 
     country_code: '+234', whatsapp_local: '', country: 'Nigeria', city: '', education_level: '', school: ''
@@ -41,7 +46,17 @@ export default function BecomeProvider() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
+
+    // Clear field-specific error as soon as the user types/selects
+    if (errors[name]) {
+      setErrors(prev => {
+        const updated = { ...prev }
+        delete updated[name]
+        return updated
+      })
+    }
+    if (formError) setFormError('')
+
     if (name === 'country_code') {
       const matchedCountry = CODE_TO_COUNTRY_MAP[value] || '';
       setForm(prev => ({
@@ -49,6 +64,13 @@ export default function BecomeProvider() {
         country_code: value,
         country: matchedCountry
       }));
+      if (matchedCountry && errors.country) {
+        setErrors(prev => {
+          const updated = { ...prev }
+          delete updated.country
+          return updated
+        })
+      }
     } else if (name === 'bio') {
       if (value.length <= MAX_BIO_LENGTH) {
         setForm(prev => ({ ...prev, [name]: value }))
@@ -57,9 +79,70 @@ export default function BecomeProvider() {
       setForm(prev => ({ ...prev, [name]: value }))
     }
   }
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {}
+
+    if (!form.full_name.trim()) {
+      newErrors.full_name = "You haven't entered your full name yet."
+    }
+
+    if (!form.email.trim()) {
+      newErrors.email = "Please provide your email address."
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      newErrors.email = "Please enter a valid email address (e.g. name@email.com)."
+    }
+
+    if (!form.category.trim()) {
+      newErrors.category = "Please select a category that fits your service."
+    }
+
+    if (!form.profession.trim()) {
+      newErrors.profession = "Please enter your specific profession."
+    }
+
+    if (!form.bio.trim()) {
+      newErrors.bio = "Don't forget to write a short bio about what you do."
+    } else if (form.bio.trim().length > MAX_BIO_LENGTH) {
+      newErrors.bio = `Short bio cannot exceed ${MAX_BIO_LENGTH} characters.`
+    }
+
+    const cleanLocal = form.whatsapp_local.trim().replace(/[\s\-\+]/g, '')
+    if (!cleanLocal) {
+      newErrors.whatsapp_local = "Please enter your WhatsApp phone number."
+    } else if (!/^\d{7,15}$/.test(cleanLocal)) {
+      newErrors.whatsapp_local = "Please enter a valid phone number (digits only)."
+    }
+
+    if (!form.country.trim()) {
+      newErrors.country = "Please enter your country."
+    }
+
+    if (!form.city.trim()) {
+      newErrors.city = "Please enter your city so clients know where you're based."
+    }
+
+    setErrors(newErrors)
+
+    // Scroll to and focus the first invalid field
+    const firstErrorKey = Object.keys(newErrors)[0]
+    if (firstErrorKey && formRef.current) {
+      const firstInvalidEl = formRef.current.querySelector(`[name="${firstErrorKey}"]`) as HTMLElement | null
+      if (firstInvalidEl) {
+        firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        firstInvalidEl.focus({ preventScroll: true })
+      }
+      return false
+    }
+
+    return true
+  }
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setFormError('')
+
+    if (!validateForm()) return
 
     let localNumber = form.whatsapp_local.trim().replace(/[\s\-\+]/g, '')
     if (localNumber.startsWith('0')) {
@@ -81,17 +164,6 @@ export default function BecomeProvider() {
       city: form.city.trim(),
     }
 
-    // Removed !trimmedForm.skills from validation check
-    if (!trimmedForm.full_name || !trimmedForm.email || !trimmedForm.category || !trimmedForm.profession || !trimmedForm.bio || !localNumber || !trimmedForm.country || !trimmedForm.city) {
-      alert('Please fill out all required fields properly.')
-      return
-    }
-
-    if (trimmedForm.bio.length > MAX_BIO_LENGTH) {
-      alert(`Short bio cannot exceed ${MAX_BIO_LENGTH} characters.`)
-      return
-    }
-
     setLoading(true)
 
     try {
@@ -104,7 +176,13 @@ export default function BecomeProvider() {
       if (checkError) throw checkError
 
       if (existingUser) {
-        alert('An account with this email or WhatsApp number already exists. Please log in or use different details.')
+        if (existingUser.email === trimmedForm.email) {
+          setErrors(prev => ({ ...prev, email: 'This email is already registered. Try logging in instead.' }))
+        }
+        if (existingUser.whatsapp === trimmedForm.whatsapp) {
+          setErrors(prev => ({ ...prev, whatsapp_local: 'This WhatsApp number is already registered.' }))
+        }
+        setFormError('An account with these details already exists.')
         setLoading(false)
         return
       }
@@ -130,13 +208,46 @@ export default function BecomeProvider() {
 
       if (data) {
         localStorage.setItem('foc_provider', JSON.stringify(data))
-        router.push('/dashboard/provider')
+        setLoading(false)
+        setSuccess(true)
+
+        setTimeout(() => {
+          router.push('/dashboard/provider')
+        }, 2000)
       }
     } catch (err: any) {
       console.error(err)
-      alert(err.message || 'Error submitting form. Please try again.')
+      setFormError(err.message || 'Something went wrong while creating your account. Please try again.')
       setLoading(false)
     }
+  }
+
+  // Helper to apply red border styling when a field has an error
+  const getInputClass = (fieldName: string, extraClasses = '') => {
+    const errorStyle = errors[fieldName]
+      ? '!border-red-500 focus:!ring-red-500/20 bg-red-50/30'
+      : ''
+    return `form-input ${errorStyle} ${extraClasses}`.trim()
+  }
+
+  if (success) {
+    return (
+      <div className="max-w-md mx-auto px-6 py-32 text-center">
+        <div className="premium-card p-10 space-y-6 flex flex-col items-center justify-center">
+          <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl animate-bounce">
+            ✓
+          </div>
+          <h2 className="serif text-3xl font-bold">Registration Successful!</h2>
+          <p className="text-muted text-sm">Your provider account has been created successfully. Taking you to your dashboard...</p>
+          <button 
+            onClick={() => router.push('/dashboard/provider')} 
+            className="btn-primary w-full justify-center !py-3 mt-4"
+          >
+            Go to Dashboard Now
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -146,29 +257,69 @@ export default function BecomeProvider() {
         <p className="text-muted">Create your account to join the campus.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="premium-card p-8 md:p-10 space-y-6">
+      {/* noValidate disables ugly default browser tooltips so our custom inline messages always run */}
+      <form ref={formRef} onSubmit={handleSubmit} noValidate className="premium-card p-8 md:p-10 space-y-6">
+        
+        {formError && (
+          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2.5">
+            <span className="font-bold">!</span>
+            <span>{formError}</span>
+          </div>
+        )}
+
         <div className="grid sm:grid-cols-2 gap-5">
           <div>
             <label className="text-sm font-medium mb-2 block">Full Name *</label>
-            <input name="full_name" required value={form.full_name} onChange={handleChange} className="form-input" placeholder="Your full name" autoComplete="name" />
+            <input 
+              name="full_name" 
+              value={form.full_name} 
+              onChange={handleChange} 
+              className={getInputClass('full_name')} 
+              placeholder="Your full name" 
+              autoComplete="name" 
+            />
+            {errors.full_name && <p className="text-red-500 text-xs mt-1.5">{errors.full_name}</p>}
           </div>
           <div>
             <label className="text-sm font-medium mb-2 block">Email *</label>
-            <input name="email" type="email" required value={form.email} onChange={handleChange} className="form-input" placeholder="you@email.com" autoComplete="email" />
+            <input 
+              name="email" 
+              type="email" 
+              value={form.email} 
+              onChange={handleChange} 
+              className={getInputClass('email')} 
+              placeholder="you@email.com" 
+              autoComplete="email" 
+            />
+            {errors.email && <p className="text-red-500 text-xs mt-1.5">{errors.email}</p>}
           </div>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-5">
           <div>
             <label className="text-sm font-medium mb-2 block">Category *</label>
-            <select name="category" required value={form.category} onChange={handleChange} className="form-input">
+            <select 
+              name="category" 
+              value={form.category} 
+              onChange={handleChange} 
+              className={getInputClass('category')}
+            >
               <option value="" disabled>Select a category</option>
               {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
             </select>
+            {errors.category && <p className="text-red-500 text-xs mt-1.5">{errors.category}</p>}
           </div>
           <div>
             <label className="text-sm font-medium mb-2 block">Specific Profession *</label>
-            <input name="profession" required value={form.profession} onChange={handleChange} className="form-input" placeholder="e.g. Brand Strategist" autoComplete="organization-title" />
+            <input 
+              name="profession" 
+              value={form.profession} 
+              onChange={handleChange} 
+              className={getInputClass('profession')} 
+              placeholder="e.g. Brand Strategist" 
+              autoComplete="organization-title" 
+            />
+            {errors.profession && <p className="text-red-500 text-xs mt-1.5">{errors.profession}</p>}
           </div>
         </div>
 
@@ -181,14 +332,14 @@ export default function BecomeProvider() {
           </div>
           <textarea 
             name="bio" 
-            required 
             rows={3} 
             maxLength={MAX_BIO_LENGTH}
             value={form.bio} 
             onChange={handleChange} 
-            className="form-input" 
+            className={getInputClass('bio')} 
             placeholder="Tell us about yourself, your work, and what makes you different..."
           ></textarea>
+          {errors.bio && <p className="text-red-500 text-xs mt-1.5">{errors.bio}</p>}
         </div>
 
         <div>
@@ -209,28 +360,46 @@ export default function BecomeProvider() {
                 <option key={c.code} value={c.code}>{c.name} ({c.code})</option>
               ))}
             </select>
-            <input 
-              name="whatsapp_local" 
-              type="tel" 
-              required 
-              value={form.whatsapp_local} 
-              onChange={handleChange} 
-              className="form-input w-full" 
-              placeholder="e.g. 8012345678 (with or without 0)" 
-              autoComplete="tel-national" 
-            />
+            <div>
+              <input 
+                name="whatsapp_local" 
+                type="tel" 
+                value={form.whatsapp_local} 
+                onChange={handleChange} 
+                className={getInputClass('whatsapp_local', 'w-full')} 
+                placeholder="e.g. 8012345678 (with or without 0)" 
+                autoComplete="tel-national" 
+              />
+              {errors.whatsapp_local && <p className="text-red-500 text-xs mt-1.5">{errors.whatsapp_local}</p>}
+            </div>
             <p className="text-[11px] text-muted">Leading zero is handled automatically.</p>
           </div>
           <div>
             <label className="text-sm font-medium mb-2 block">Country *</label>
-            <input name="country" required value={form.country} onChange={handleChange} className="form-input" placeholder="Nigeria" autoComplete="country-name" />
+            <input 
+              name="country" 
+              value={form.country} 
+              onChange={handleChange} 
+              className={getInputClass('country')} 
+              placeholder="Nigeria" 
+              autoComplete="country-name" 
+            />
+            {errors.country && <p className="text-red-500 text-xs mt-1.5">{errors.country}</p>}
           </div>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-5">
           <div>
             <label className="text-sm font-medium mb-2 block">City *</label>
-            <input name="city" required value={form.city} onChange={handleChange} className="form-input" placeholder="Bauchi" autoComplete="address-level2" />
+            <input 
+              name="city" 
+              value={form.city} 
+              onChange={handleChange} 
+              className={getInputClass('city')} 
+              placeholder="Bauchi" 
+              autoComplete="address-level2" 
+            />
+            {errors.city && <p className="text-red-500 text-xs mt-1.5">{errors.city}</p>}
           </div>
           <div>
             <label className="text-sm font-medium mb-2 block">Highest Education Level</label>

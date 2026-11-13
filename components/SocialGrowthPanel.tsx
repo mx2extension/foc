@@ -8,11 +8,10 @@ const VIEWS_MARKUP = 30
 export default function SocialGrowthPanel() {
   const [isOpen, setIsOpen] = useState(false)
   const [services, setServices] = useState<any[]>([])
-  const [balance, setBalance] = useState(0)
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState('')
-  const [successOrder, setSuccessOrder] = useState('')
-  const [waConfirmLink, setWaConfirmLink] = useState('')
+  const [orderPlaced, setOrderPlaced] = useState(false)
+  const [waLink, setWaLink] = useState('')
 
   // Form state
   const [email, setEmail] = useState('')
@@ -20,7 +19,6 @@ export default function SocialGrowthPanel() {
   const [serviceId, setServiceId] = useState('')
   const [link, setLink] = useState('')
   const [quantity, setQuantity] = useState(500)
-  const [orderId, setOrderId] = useState('')
 
   useEffect(() => {
     if (isOpen) fetchServices()
@@ -40,22 +38,17 @@ export default function SocialGrowthPanel() {
 
   const fetchServices = async () => {
     setLoading(true)
-    const servicesRes = await fetch('/api/smm', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'services' })
-    })
-    const servicesData = await servicesRes.json()
-    if (Array.isArray(servicesData)) setServices(servicesData)
-
-    const balanceRes = await fetch('/api/smm', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'balance' })
-    })
-    const balanceData = await balanceRes.json()
-    if (balanceData.balance) setBalance(parseFloat(balanceData.balance))
-    
+    try {
+      const servicesRes = await fetch('/api/smm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'services' })
+      })
+      const servicesData = await servicesRes.json()
+      if (Array.isArray(servicesData)) setServices(servicesData)
+    } catch (error) {
+      showToast('Error loading services.')
+    }
     setLoading(false)
   }
 
@@ -73,7 +66,6 @@ export default function SocialGrowthPanel() {
     return serviceName.toLowerCase().includes('view') ? VIEWS_MARKUP : REGULAR_MARKUP
   }
 
-  // Helper to ask for Post URL or Profile URL depending on the service
   const getLinkPlaceholder = (serviceName: string = '') => {
     const lower = serviceName.toLowerCase()
     if (lower.includes('view') || lower.includes('like') || lower.includes('comment') || lower.includes('share') || lower.includes('retweet') || lower.includes('impression')) {
@@ -92,76 +84,16 @@ export default function SocialGrowthPanel() {
 
   const totalCost = calculateTotal()
 
-  const triggerFallback = () => {
-    // Pre-format the WhatsApp message for manual bank transfer
-    const rawMsg = `Hello MX2ViralWorld, I just paid for my order.\n\nService: ${selectedService?.name}\nLink: ${link}\nQuantity: ${quantity}\nTotal Paid: ₦${totalCost.toLocaleString()}\n\nAttached is the payment screenshot.`
-    const waMsg = encodeURIComponent(rawMsg)
-
-    window.dispatchEvent(new CustomEvent('show-fallback-payment', { 
-      detail: { 
-        amount: totalCost.toLocaleString(), 
-        description: 'MX2ViralWorld Social Media Service',
-        whatsappMessage: waMsg 
-      } 
-    }))
-  }
-
-  const initiateFlutterwave = () => {
-    const flwKey = process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY
-
-    // FALLBACK: If Flutterwave key is missing, open the Manual Bank Transfer Modal
-    if (!flwKey || typeof window === 'undefined' || !(window as any).FlutterwaveCheckout) {
-      triggerFallback()
-      return
-    }
-
-    setLoading(true)
-    const reference = `SMM_${Date.now()}`
-    setSuccessOrder('')
-    setWaConfirmLink('')
-
-    try {
-      // Initialize Flutterwave Checkout (Using v3 'public_key' parameter)
-      (window as any).FlutterwaveCheckout({
-        public_key: flwKey, 
-        tx_ref: reference,
-        amount: totalCost,
-        currency: 'NGN',
-        payment_options: 'card, banktransfer, ussd',
-        customer: {
-          email: email,
-        },
-        customization: {
-          title: "MX2ViralWorld",
-          description: "Social Media Growth Service",
-          logo: "https://res.cloudinary.com/drnrbfltr/image/upload/v1786364796/ed0296b5-7a89-4ed7-bc64-5d1ad018de78.png"
-        },
-        callback: function(data: any) {
-          // Payment successful! Now place the order to the SMM panel.
-          if (data.status === 'successful' || data.status === 'completed') {
-            placeSmmOrder(reference)
-          } else {
-            showToast('Payment was not successful. Please try again.')
-            setLoading(false)
-          }
-        },
-        onclose: function() {
-          // If user closes the modal without paying, offer the fallback
-          triggerFallback()
-          setLoading(false)
-        }
-      })
-    } catch (error) {
-      showToast('Error initiating payment.')
-      setLoading(false)
-    }
-  }
-
-  const handleOrder = async (e: React.FormEvent) => {
+  const handleProceedToPayment = (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!email) {
       showToast('Please enter your email to proceed.')
+      return
+    }
+
+    if (!serviceId) {
+      showToast('Please select a service.')
       return
     }
 
@@ -170,77 +102,18 @@ export default function SocialGrowthPanel() {
       return
     }
 
-    // Proceed directly to Flutterwave. 
-    // The backend will safely queue the order if the system balance is low.
-    initiateFlutterwave()
+    // Fully formatted WhatsApp message containing all order and payment details
+    const rawMsg = `Hello MX2ViralWorld, I have made my payment.\n\n📋 *Order Details*\n• Service: ${selectedService?.name}\n• Link: ${link}\n• Quantity: ${quantity}\n• Total Amount: ₦${totalCost.toLocaleString()}\n\n🏦 *Payment Info*\n• Bank: Opay\n• Account Number: 8149193063\n• Account Name: Chinemerem Nwankpa\n\n[Attached is my payment screenshot]`
+    const encodedMsg = encodeURIComponent(rawMsg)
+    
+    setWaLink(`https://wa.me/2348149193063?text=${encodedMsg}`)
+    setOrderPlaced(true)
   }
 
-  const placeSmmOrder = async (reference: string) => {
-    // Capture details before clearing the form
-    const currentSvcName = selectedService?.name || 'Social Service'
-    const currentLink = link
-    const currentQty = quantity
-
-    // Use PUT instead of POST to trigger the "safe add" logic (queues if balance is low)
-    const res = await fetch('/api/smm', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        service_id: serviceId, 
-        service_name: currentSvcName,
-        link: currentLink, 
-        quantity: currentQty, 
-        amount_paid: totalCost,
-        email: email,
-        reference: reference
-      })
-    })
-    const data = await res.json()
-
-    if (data.status === 'success' || data.status === 'queued') {
-      // Generate a Ticket ID for the user to track
-      const ticketId = data.status === 'success' ? String(data.order) : `MX2-${Date.now().toString().slice(-6)}`
-      
-      setSuccessOrder(ticketId)
-      setOrderId(ticketId)
-      
-      // Format the WhatsApp DM message with the ticket details
-      const waMsg = `Hello MX2ViralWorld, my order has been placed.\n\nTicket ID: ${ticketId}\nService: ${currentSvcName}\nLink: ${currentLink}\nQuantity: ${currentQty}\n\nI am sending this to confirm and track my order.`
-      setWaConfirmLink(`https://wa.me/2349017380098?text=${encodeURIComponent(waMsg)}`)
-      
-      // Clear form and refresh balance
-      setLink('')
-      fetchServices() 
-
-      if (data.status === 'queued') {
-        showToast('Payment successful! Your order is now processing.')
-      }
-    } else {
-      showToast(`Payment received, but order failed. Contact support with ref: ${reference}`)
-    }
-    setLoading(false)
-  }
-
-  const handleCheckStatus = async () => {
-    if (!orderId) return
-    const res = await fetch('/api/smm', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'status', order: orderId })
-    })
-    const data = await res.json()
-    if (data.status) {
-      showToast(`Order ${orderId}: ${data.status.toUpperCase()} (Remains: ${data.remains})`)
-    } else {
-      // If it's a queued MX2 ticket, it won't exist on RSS yet
-      showToast(`Order ${orderId} is still processing in our queue.`)
-    }
-  }
-
-  // Helper to copy tracking ID to clipboard
-  const handleCopyTrackingId = () => {
-    navigator.clipboard.writeText(successOrder)
-    showToast('Tracking ID Copied!')
+  const handleReset = () => {
+    setOrderPlaced(false)
+    setLink('')
+    setServiceId('')
   }
 
   return (
@@ -269,68 +142,72 @@ export default function SocialGrowthPanel() {
               </div>
             </div>
             
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <div className="text-[9px] uppercase tracking-wider text-white/50">Balance</div>
-                <div className="font-bold text-accent text-sm tracking-widest">••••••</div>
-              </div>
-              <button 
-                onClick={() => setIsOpen(false)}
-                className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
-                aria-label="Close Panel"
-              >
-                <i className="fas fa-times text-xs"></i>
-              </button>
-            </div>
+            <button 
+              onClick={() => setIsOpen(false)}
+              className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+              aria-label="Close Panel"
+            >
+              <i className="fas fa-times text-xs"></i>
+            </button>
           </div>
 
           {/* Body */}
           <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-paper">
-            {/* Success Order Ticket Display & WhatsApp DM */}
-            {successOrder && (
-              <div className="bg-green-50 border border-green-200 p-3 rounded-lg text-center space-y-3">
+            {orderPlaced ? (
+              <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg space-y-3 text-center">
                 <div>
-                  <i className="fas fa-check-circle text-green-600 text-lg mb-1"></i>
-                  <p className="text-xs text-green-800 font-semibold">Payment Successful!</p>
-                </div>
-                
-                <div>
-                  <p className="text-[11px] text-green-700 mb-1.5">Your Order Tracking ID is:</p>
-                  <div className="flex items-center justify-between bg-white p-2 rounded-md border border-green-300">
-                    <span className="font-bold text-green-900 text-sm tracking-wider">{successOrder}</span>
-                    <button 
-                      onClick={handleCopyTrackingId}
-                      className="bg-green-600 text-white px-3 py-1.5 rounded text-[10px] font-bold hover:bg-green-700 transition flex items-center gap-1"
-                    >
-                      <i className="fas fa-copy"></i> Copy
-                    </button>
-                  </div>
-                  <p className="text-[10px] text-red-500 font-medium mt-1.5 animate-pulse">
-                    ⚠️ Make sure to copy and save this ID!
-                  </p>
+                  <i className="fas fa-wallet text-amber-600 text-xl mb-1"></i>
+                  <p className="text-xs text-amber-900 font-bold">Complete Your Bank Transfer</p>
                 </div>
 
-                <div className="pt-2 border-t border-green-200">
-                  <p className="text-[10px] text-green-600 mb-2">Click below to send us a quick DM confirming your order:</p>
+                <div className="bg-white p-3 rounded-md border border-amber-200 text-left space-y-1.5 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-muted">Bank Name:</span>
+                    <span className="font-bold text-ink">Opay</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted">Account Number:</span>
+                    <span className="font-bold text-primary select-all">8149193063</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted">Account Name:</span>
+                    <span className="font-bold text-ink">Chinemerem Nwankpa</span>
+                  </div>
+                  <div className="flex justify-between pt-1 border-t border-black/5">
+                    <span className="text-muted">Amount to Pay:</span>
+                    <span className="font-bold text-emerald-600 text-sm">₦{totalCost.toLocaleString()}</span>
+                  </div>
+                </div>
+
+                <p className="text-[10px] text-amber-800">
+                  After making the transfer, click below. Your order details are already formatted—just attach your screenshot and send!
+                </p>
+
+                <div className="space-y-2 pt-1">
                   <a 
-                    href={waConfirmLink} 
+                    href={waLink} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 w-full py-2.5 text-xs text-white bg-[#25D366] rounded-lg font-medium hover:opacity-90 transition"
+                    className="flex items-center justify-center gap-2 w-full py-2.5 text-xs text-white bg-[#25D366] rounded-lg font-medium hover:opacity-90 transition shadow"
                   >
-                    <i className="fab fa-whatsapp text-base"></i> Send DM to Confirm
+                    <i className="fab fa-whatsapp text-base"></i> Send Pre-filled WhatsApp Message
                   </a>
+                  
+                  <button 
+                    onClick={handleReset}
+                    className="w-full py-1.5 text-[11px] text-muted hover:text-ink transition"
+                  >
+                    ← Back to Order Form
+                  </button>
                 </div>
               </div>
-            )}
-
-            {loading && services.length === 0 ? (
+            ) : loading && services.length === 0 ? (
               <div className="text-center py-6 text-muted">
                 <i className="fas fa-spinner fa-spin text-xl mb-2"></i>
                 <p className="text-xs">Loading services...</p>
               </div>
             ) : (
-              <form onSubmit={handleOrder} className="space-y-3">
+              <form onSubmit={handleProceedToPayment} className="space-y-3">
                 <div>
                   <label className="text-[11px] font-medium text-muted block mb-1">Your Email</label>
                   <input 
@@ -418,46 +295,29 @@ export default function SocialGrowthPanel() {
 
                 {serviceId && (
                   <div className="bg-white p-2.5 rounded-lg border border-black/5 flex justify-between items-center">
-                    <span className="text-xs text-muted">Total Cost:</span>
+                    <span className="text-xs text-muted">Total Amount:</span>
                     <span className="serif text-xl text-primary">₦{totalCost.toLocaleString()}</span>
                   </div>
                 )}
 
                 <button 
                   type="submit" 
-                  disabled={loading || !serviceId} 
+                  disabled={!serviceId} 
                   className="btn-primary w-full justify-center !py-2.5 text-xs disabled:opacity-50"
                 >
-                  {loading ? 'Processing...' : <><i className="fas fa-lock mr-1.5"></i> Pay & Place Order</>}
+                  <><i className="fas fa-paper-plane mr-1.5"></i> Proceed to Bank Transfer</>
                 </button>
               </form>
             )}
 
-            {/* Order Status Checker */}
-            <div className="pt-3 border-t border-black/10">
-              <label className="text-[11px] font-medium text-muted block mb-1.5">Check Order Status</label>
-              <div className="flex gap-2">
-                <input 
-                  type="text" 
-                  value={orderId} 
-                  onChange={(e) => setOrderId(e.target.value)} 
-                  placeholder="Enter Ticket/Order ID"
-                  className="form-input !py-2 !text-xs flex-1"
-                />
-                <button onClick={handleCheckStatus} className="btn-secondary !py-2 !px-3 text-xs">
-                  Check
-                </button>
-              </div>
-            </div>
-
             {/* WhatsApp Support Button */}
             <a 
-              href="https://wa.me/2349017380098?text=Hello%20MX2ViralWorld,%20I%20need%20assistance" 
+              href="https://wa.me/2348149193063?text=Hello%20Chinemerem,%20I%20need%20assistance%20with%20my%20social%20media%20order." 
               target="_blank" 
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 w-full py-2.5 mt-2 text-xs text-white bg-[#25D366] rounded-lg font-medium hover:opacity-90 transition"
             >
-              <i className="fab fa-whatsapp text-base"></i> Chat for Support / Funding
+              <i className="fab fa-whatsapp text-base"></i> Chat for Support
             </a>
           </div>
         </div>
