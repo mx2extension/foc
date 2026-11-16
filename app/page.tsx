@@ -6,13 +6,13 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase/client'
 
 export default async function Home() {
-  // 1. Run database queries concurrently (only what we actually need to display)
+  // 1. Run database queries concurrently
   const [providersRes, newsRes] = await Promise.all([
     supabase.from('providers').select('*').eq('is_approved', true),
     supabase.from('news_updates').select('*').order('created_at', { ascending: false }).limit(3)
   ])
 
-  // 2. Extract data safely — no counts, no quantities shown
+  // 2. Extract data safely
   const allProviders = providersRes.data || []
   const latestNews = newsRes.data || []
 
@@ -21,12 +21,10 @@ export default async function Home() {
     const aScore = (a.verification_status === 'verified' ? 2 : 0) + (a.membership === 'pro' ? 1 : 0)
     const bScore = (b.verification_status === 'verified' ? 2 : 0) + (b.membership === 'pro' ? 1 : 0)
     
-    // If scores are different, prioritize the higher badge (Verified > Pro > Free)
     if (aScore !== bScore) {
       return bScore - aScore
     }
     
-    // If scores are the same, scramble them randomly on every load/refresh!
     return Math.random() - 0.5
   }).slice(0, 6)
 
@@ -91,7 +89,7 @@ export default async function Home() {
       </section>
 
       {/* SEARCH SECTION */}
-      <section className="relative py-32 overflow-hidden">
+      <section className="relative py-24 lg:py-32 overflow-hidden">
         <div className="orb" style={{ width: '600px', height: '600px', background: 'rgba(193,18,31,0.06)', top: '20%', left: '50%', transform: 'translate(-50%, -50%)' }}></div>
         
         <div className="relative max-w-5xl mx-auto px-6 lg:px-10 text-center z-10">
@@ -106,46 +104,47 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* FEATURED CATEGORIES */}
-      <section className="py-32 bg-paper relative overflow-hidden">
+      {/* FEATURED CATEGORIES: 2x3 on Mobile (4 visible at once) | 3x2 on Desktop */}
+      <section className="py-20 lg:py-32 bg-paper relative overflow-hidden">
         <div className="orb" style={{ width: '500px', height: '500px', background: 'rgba(212,160,23,0.05)', bottom: '0', right: '-100px' }}></div>
 
-        <div className="relative max-w-7xl mx-auto px-6 lg:px-10 z-10">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 z-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 lg:mb-16 gap-6">
             <div>
-              <div className="section-label mb-6 reveal">Explore the campus</div>
-              <h2 className="serif reveal reveal-delay-1" style={{ fontSize: 'clamp(40px, 6vw, 72px)', lineHeight: 1, letterSpacing: '-0.02em' }}>
+              <div className="section-label mb-4 lg:mb-6 reveal">Explore the campus</div>
+              <h2 className="serif reveal reveal-delay-1" style={{ fontSize: 'clamp(34px, 6vw, 72px)', lineHeight: 1, letterSpacing: '-0.02em' }}>
                 Featured <span className="serif-italic gradient-text">Categories</span>
               </h2>
             </div>
-            <p className="text-muted max-w-md text-lg reveal reveal-delay-2">
-              Six doorways into the campus. Each one a different way to find what — or who — you're looking for.
+            <p className="text-muted max-w-md text-base lg:text-lg reveal reveal-delay-2">
+              Six doorways into the campus. Each one a different way to find what — or who — you&apos;re looking for.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 lg:gap-6">
             {[
               { icon: 'fa-user-tie', title: 'Professionals', desc: 'Find trusted experts across every field.', meta: 'Verified experts • Global network', color: 'bg-primary/10 text-primary', link: '/providers' },
               { icon: 'fa-book-open', title: 'Books', desc: 'A curated digital bookstore of independent titles.', meta: 'Curated titles • Instant download', color: 'bg-accent/15 text-accent', link: '/books' },
               { icon: 'fa-graduation-cap', title: 'Courses', desc: 'Live and self-paced courses taught by practitioners.', meta: 'Live & self-paced • Taught by doers', color: 'bg-ink/10 text-ink', link: '/courses' },
-              // Replaced Podcasts with Shop and added gradient style
               { icon: 'fa-bag-shopping', title: 'The Shop', desc: 'Premium gadgets, fashion, and home goods delivered globally.', meta: 'Curated tech & lifestyle • Secure checkout', color: 'bg-gradient-to-br from-primary to-accent text-white', link: '/shop' },
               { icon: 'fa-toolbox', title: 'Resources', desc: 'Tools, articles, and movies for the lifelong learner.', meta: 'Hand-picked • Updated regularly', color: 'bg-accent/15 text-accent', link: '/resources' },
               { icon: 'fa-compass', title: 'Community', desc: 'Get-To-Know About the Campus to Stay Involved', meta: 'Weekly drops • Community-curated', color: 'bg-ink/10 text-ink', link: '/community' },
             ].map((cat, i) => (
-              <Link href={cat.link} key={i} className={`premium-card p-8 lg:p-10 group cursor-pointer reveal reveal-delay-${(i % 3) + 1}`}>
-                <div className="flex items-start justify-between mb-12">
-                  <div className={`w-14 h-14 rounded-2xl ${cat.color} flex items-center justify-center transition-transform group-hover:scale-110 group-hover:rotate-[-5deg]`}>
-                    <i className={`fas ${cat.icon} text-xl`}></i>
+              <Link href={cat.link} key={i} className={`premium-card p-4 sm:p-6 lg:p-10 group cursor-pointer reveal reveal-delay-${(i % 3) + 1} flex flex-col justify-between`}>
+                <div>
+                  <div className="flex items-start justify-between mb-4 sm:mb-6 lg:mb-12">
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl ${cat.color} flex items-center justify-center transition-transform group-hover:scale-110 group-hover:rotate-[-5deg]`}>
+                      <i className={`fas ${cat.icon} text-base lg:text-xl`}></i>
+                    </div>
+                    <i className="fas fa-arrow-up-right text-muted text-xs lg:text-sm"></i>
                   </div>
-                  <i className="fas fa-arrow-up-right text-muted text-sm"></i>
+                  <h3 className="serif text-lg sm:text-2xl lg:text-3xl mb-1.5 lg:mb-2">{cat.title}</h3>
+                  <p className="text-xs sm:text-sm lg:text-base text-muted leading-relaxed mb-4 lg:mb-6 line-clamp-2 lg:line-clamp-none">{cat.desc}</p>
                 </div>
-                <h3 className="serif text-3xl mb-2">{cat.title}</h3>
-                <p className="text-muted leading-relaxed mb-6">{cat.desc}</p>
-                <div className="flex items-center gap-2 text-sm text-primary font-medium">
+                <div className="flex items-center gap-1.5 lg:gap-2 text-[11px] sm:text-xs lg:text-sm text-primary font-medium pt-2 lg:pt-0 border-t lg:border-t-0 border-black/5">
                   <span>{cat.meta.split('•')[0]}</span>
-                  <span className="w-1 h-1 rounded-full bg-muted"></span>
-                  <span>{cat.meta.split('•')[1]}</span>
+                  <span className="hidden lg:inline-block w-1 h-1 rounded-full bg-muted"></span>
+                  <span className="hidden lg:inline">{cat.meta.split('•')[1]}</span>
                 </div>
               </Link>
             ))}
@@ -153,7 +152,7 @@ export default async function Home() {
         </div>
       </section>
 
-{/* SPONSORED AD - RUN ADS WITH US */}
+      {/* SPONSORED AD - RUN ADS WITH US */}
       <section className="py-16 relative overflow-hidden">
         <div className="max-w-4xl mx-auto px-6 lg:px-10">
           <div className="premium-card p-8 md:p-12 !bg-[#121212] text-white flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left shadow-2xl border border-white/10">
@@ -175,7 +174,7 @@ export default async function Home() {
       </section>
 
       {/* WHY FINDONECAMPUS */}
-      <section className="py-32 relative overflow-hidden">
+      <section className="py-24 lg:py-32 relative overflow-hidden">
         <div className="orb" style={{ width: '700px', height: '700px', background: 'rgba(212,160,23,0.05)', top: '20%', right: '-200px' }}></div>
 
         <div className="relative max-w-7xl mx-auto px-6 lg:px-10 z-10">
@@ -189,7 +188,7 @@ export default async function Home() {
                 <p>The world is one giant campus.</p>
                 <p>In classrooms, in markets, in studios, in offices, in homes — people are teaching each other, building with each other, and searching for what comes next.</p>
                 <p>FindOneCampus exists to make that search simpler. To connect the learner with the teacher. The builder with the client. The reader with the book. The dreamer with the opportunity.</p>
-                <p className="serif-italic text-2xl text-ink">We don't believe in walls. We believe in worlds.</p>
+                <p className="serif-italic text-2xl text-ink">We don&apos;t believe in walls. We believe in worlds.</p>
               </div>
 
               <div className="mt-12 grid sm:grid-cols-3 gap-6 reveal reveal-delay-3">
@@ -204,7 +203,7 @@ export default async function Home() {
                   <div className="w-10 h-10 rounded-xl bg-accent/15 flex items-center justify-center text-accent mb-4">
                     <i className="fas fa-arrows-left-right"></i>
                   </div>
-                  <h4 className="font-semibold mb-2">Everyone teaches & learns</h4>
+                  <h4 className="font-semibold mb-2">Everyone teaches &amp; learns</h4>
                   <p className="text-sm text-muted leading-relaxed">We all have something to offer.</p>
                 </div>
                 <div>
@@ -224,22 +223,22 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* FEATURED PROVIDERS */}
-      <section id="providers" className="py-32 bg-paper relative">
-        <div className="max-w-7xl mx-auto px-6 lg:px-10">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+      {/* FEATURED PROVIDERS: 2x3 on Mobile | 3x2 on Desktop */}
+      <section id="providers" className="py-20 lg:py-32 bg-paper relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 lg:mb-16 gap-6">
             <div>
-              <div className="section-label mb-6 reveal">Meet the people</div>
-              <h2 className="serif reveal reveal-delay-1" style={{ fontSize: 'clamp(40px, 6vw, 72px)', lineHeight: 1, letterSpacing: '-0.02em' }}>
+              <div className="section-label mb-4 lg:mb-6 reveal">Meet the people</div>
+              <h2 className="serif reveal reveal-delay-1" style={{ fontSize: 'clamp(34px, 6vw, 72px)', lineHeight: 1, letterSpacing: '-0.02em' }}>
                 Featured <span className="serif-italic gradient-text">Providers</span>
               </h2>
             </div>
-            <Link href="/providers" className="btn-secondary !py-3 !px-5 text-sm whitespace-nowrap reveal reveal-delay-2">
+            <Link href="/providers" className="btn-secondary !py-3 !px-5 text-sm whitespace-nowrap self-start md:self-auto reveal reveal-delay-2">
               View all <i className="fas fa-arrow-right text-xs"></i>
             </Link>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 lg:gap-6">
             {featuredProviders && featuredProviders.length > 0 ? (
               featuredProviders.map((provider: any) => (
                 <ProviderCard key={provider.id} provider={provider} />
@@ -254,7 +253,7 @@ export default async function Home() {
       </section>
 
       {/* COMMUNITY */}
-      <section id="community" className="py-32 relative overflow-hidden bg-ink text-white">
+      <section id="community" className="py-24 lg:py-32 relative overflow-hidden bg-ink text-white">
         <div className="orb" style={{ width: '600px', height: '600px', background: 'rgba(193,18,31,0.2)', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}></div>
 
         <div className="relative max-w-5xl mx-auto px-6 lg:px-10 text-center z-10">
@@ -263,7 +262,7 @@ export default async function Home() {
             <span className="text-sm">Join the community</span>
           </div>
           <h2 className="serif mb-8 reveal reveal-delay-1" style={{ fontSize: 'clamp(40px, 7vw, 88px)', lineHeight: 0.95, letterSpacing: '-0.02em' }}>
-            Opportunities don't live on websites.<br />
+            Opportunities don&apos;t live on websites.<br />
             <span className="serif-italic" style={{ background: 'linear-gradient(135deg, #D4A017, #C1121F)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>They live in conversations.</span>
           </h2>
           <p className="text-xl text-white/70 max-w-2xl mx-auto mb-12 leading-relaxed reveal reveal-delay-2">
@@ -278,13 +277,13 @@ export default async function Home() {
       </section>
 
       {/* NEWS & UPDATES */}
-      <section className="py-32 relative overflow-hidden bg-paper">
+      <section className="py-24 lg:py-32 relative overflow-hidden bg-paper">
         <div className="max-w-7xl mx-auto px-6 lg:px-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
             <div>
               <div className="section-label mb-6 reveal">Campus Bulletin</div>
               <h2 className="serif reveal reveal-delay-1" style={{ fontSize: 'clamp(40px, 6vw, 72px)', lineHeight: 1, letterSpacing: '-0.02em' }}>
-                News & <span className="serif-italic gradient-text">Updates.</span>
+                News &amp; <span className="serif-italic gradient-text">Updates.</span>
               </h2>
             </div>
             <Link href="/news" className="btn-secondary !py-3 !px-5 text-sm whitespace-nowrap reveal reveal-delay-2">
@@ -323,7 +322,7 @@ export default async function Home() {
       </section>
 
       {/* FAQ SECTION */}
-      <section id="faq" className="py-32 relative overflow-hidden">
+      <section id="faq" className="py-24 lg:py-32 relative overflow-hidden">
         <div className="orb" style={{ width: '500px', height: '500px', background: 'rgba(193,18,31,0.05)', top: '10%', left: '-100px' }}></div>
 
         <div className="relative max-w-4xl mx-auto px-6 lg:px-10 z-10">
@@ -333,7 +332,7 @@ export default async function Home() {
               Frequently <span className="serif-italic gradient-text">Asked.</span>
             </h2>
             <p className="text-lg text-muted max-w-2xl mx-auto reveal reveal-delay-2">
-              Everything you might want to know about FindOneCampus — and if it's not here, the community has you covered.
+              Everything you might want to know about FindOneCampus — and if it&apos;s not here, the community has you covered.
             </p>
           </div>
 
@@ -364,28 +363,28 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-32 relative">
-        <div className="max-w-5xl mx-auto px-6 lg:px-10">
-          <div className="relative p-12 lg:p-20 text-center rounded-[28px] border border-black/5 overflow-hidden reveal">
-            <div className="absolute inset-0 bg-gradient-to-br from-white to-paper -z-10"></div>
-            <div className="absolute inset-0 rounded-[28px] p-[1px] bg-gradient-to-br from-primary/40 to-accent/40 -z-10"></div>
-            
-            <h2 className="serif mb-8" style={{ fontSize: 'clamp(36px, 6vw, 80px)', lineHeight: 1, letterSpacing: '-0.02em' }}>
-              Find what you're<br />
-              <span className="serif-italic gradient-text">searching for.</span>
-            </h2>
-            <p className="text-lg text-muted max-w-xl mx-auto mb-10">
-              Whether it's a person, a book, a course, an opportunity, or the perfect gadget — the campus is here, and the doors are open.
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-4">
-              <Link href="/shop" className="btn-primary">
-                <span>Visit the Shop</span>
-                <i className="fas fa-arrow-right text-xs"></i>
-              </Link>
-              <Link href="/providers" className="btn-secondary">
-                <span>Find a Professional</span>
-              </Link>
+      {/* CTA: Stacked on Mobile | Side-by-side on Desktop */}
+      <section className="py-24 lg:py-32 relative">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-10">
+          <div className="relative p-8 sm:p-12 lg:p-20 text-center rounded-[28px] border border-black/10 bg-gradient-to-br from-white to-paper overflow-hidden shadow-sm reveal">
+            <div className="relative z-10">
+              <h2 className="serif mb-6 sm:mb-8" style={{ fontSize: 'clamp(34px, 6vw, 80px)', lineHeight: 1, letterSpacing: '-0.02em' }}>
+                Find what you&apos;re<br />
+                <span className="serif-italic gradient-text">searching for.</span>
+              </h2>
+              <p className="text-base sm:text-lg text-muted max-w-xl mx-auto mb-8 sm:mb-10">
+                Whether it&apos;s a person, a book, a course, an opportunity, or the perfect gadget — the campus is here, and the doors are open.
+              </p>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 max-w-md sm:max-w-none mx-auto">
+                <Link href="/shop" className="btn-primary w-full sm:w-auto justify-center">
+                  <span>Visit the Shop</span>
+                  <i className="fas fa-arrow-right text-xs"></i>
+                </Link>
+                <Link href="/providers" className="btn-secondary w-full sm:w-auto justify-center">
+                  <span>Find a Professional</span>
+                  <i className="fas fa-arrow-right text-xs"></i>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
