@@ -16,7 +16,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [router])
 
   if (loading) {
-    return <div className="py-32 text-center text-muted">Verifying admin access...</div>
+    return <div className="py-32 text-center text-xs sm:text-sm text-muted">Verifying admin access...</div>
   }
 
   return <>{children}</>

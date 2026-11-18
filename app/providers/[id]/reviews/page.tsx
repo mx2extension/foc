@@ -40,22 +40,21 @@ export default async function ProviderReviewsPage({ params }: { params: { id: st
       .from('reviews')
       .select('id, reviewer_name, rating, comment, created_at')
       .eq('provider_id', params.id)
-      .eq('is_approved', true)
       .order('created_at', { ascending: false }),
   ])
 
   if (!provider) return notFound()
 
   const avatar = getProfessionAvatar(provider.profession, provider.full_name)
-  const approvedReviews = reviews || []
-  const totalReviews = approvedReviews.length
+  const allReviews = reviews || []
+  const totalReviews = allReviews.length
   const averageRating = totalReviews > 0
-    ? (approvedReviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1)
+    ? (allReviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1)
     : '0.0'
 
   // Calculate star breakdown (5 down to 1)
   const ratingBreakdown = [5, 4, 3, 2, 1].map((star) => {
-    const count = approvedReviews.filter((r) => r.rating === star).length
+    const count = allReviews.filter((r) => r.rating === star).length
     const percentage = totalReviews > 0 ? Math.round((count / totalReviews) * 100) : 0
     return { star, count, percentage }
   })
@@ -75,7 +74,7 @@ export default async function ProviderReviewsPage({ params }: { params: { id: st
         bestRating: '5',
         worstRating: '1',
       },
-      review: approvedReviews.slice(0, 10).map((r) => ({
+      review: allReviews.slice(0, 10).map((r) => ({
         '@type': 'Review',
         author: { '@type': 'Person', name: r.reviewer_name },
         datePublished: r.created_at,
@@ -161,7 +160,7 @@ export default async function ProviderReviewsPage({ params }: { params: { id: st
             </div>
 
             <p className="text-xs text-muted mb-6">
-              Based on {totalReviews} verified {totalReviews === 1 ? 'review' : 'reviews'}
+              Based on {totalReviews} {totalReviews === 1 ? 'review' : 'reviews'}
             </p>
 
             {/* Star Distribution Bars */}
@@ -192,7 +191,7 @@ export default async function ProviderReviewsPage({ params }: { params: { id: st
               Client Reviews ({totalReviews})
             </h2>
 
-            {approvedReviews.length === 0 ? (
+            {allReviews.length === 0 ? (
               <div className="premium-card p-10 text-center">
                 <div className="w-12 h-12 rounded-full bg-paper flex items-center justify-center mx-auto mb-3 text-muted">
                   <i className="far fa-comment-dots text-xl"></i>
@@ -204,7 +203,7 @@ export default async function ProviderReviewsPage({ params }: { params: { id: st
               </div>
             ) : (
               <div className="space-y-4">
-                {approvedReviews.map((review) => (
+                {allReviews.map((review) => (
                   <div key={review.id} className="premium-card p-6">
                     <div className="flex items-start justify-between gap-4 mb-3">
                       <div className="flex items-center gap-3">

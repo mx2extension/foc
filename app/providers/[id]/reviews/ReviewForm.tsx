@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 
 export default function ReviewForm({
@@ -10,6 +11,7 @@ export default function ReviewForm({
   providerId: string
   providerName: string
 }) {
+  const router = useRouter()
   const [rating, setRating] = useState(5)
   const [hoveredRating, setHoveredRating] = useState(0)
   const [reviewerName, setReviewerName] = useState('')
@@ -36,7 +38,7 @@ export default function ReviewForm({
       reviewer_whatsapp: reviewerWhatsapp.trim() || null,
       rating,
       comment: comment.trim(),
-      is_approved: false, // Queued for admin approval to prevent spam
+      is_approved: true,
     })
 
     setSubmitting(false)
@@ -47,6 +49,7 @@ export default function ReviewForm({
     }
 
     setSubmitted(true)
+    router.refresh()
   }
 
   if (submitted) {
@@ -57,7 +60,7 @@ export default function ReviewForm({
           <h3 className="text-lg font-semibold text-ink">Thank you for your feedback!</h3>
         </div>
         <p className="text-sm text-muted leading-relaxed">
-          Your review for <span className="font-medium text-ink">{providerName}</span> has been submitted and is pending quick verification before appearing publicly.
+          Your review for <span className="font-medium text-ink">{providerName}</span> has been published.
         </p>
       </div>
     )
@@ -128,7 +131,7 @@ export default function ReviewForm({
 
         <div>
           <label className="block text-xs font-semibold text-ink mb-1.5">
-            WhatsApp Number <span className="text-muted font-normal">(Private, for verification)</span>
+            WhatsApp Number <span className="text-muted font-normal">(Private, optional)</span>
           </label>
           <input
             type="tel"

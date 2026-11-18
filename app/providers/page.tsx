@@ -1,6 +1,6 @@
 'use client'
-import { useState, useEffect, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useState, useLayoutEffect, Suspense, startTransition } from 'react'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import ProviderCard from '@/components/ProviderCard'
 
@@ -14,30 +14,68 @@ const CATEGORIES = [
 
 function ProvidersContent() {
   const searchParams = useSearchParams();
-  const initialSearch = searchParams?.get('search') || '';
-  
-  const [providers, setProviders] = useState<any[]>([])
-  const [countries, setCountries] = useState<string[]>([])
-  const [search, setSearch] = useState(initialSearch)
-  const [category, setCategory] = useState('')
-  const [country, setCountry] = useState('')
-  const [visibleCount, setVisibleCount] = useState(12)
-  
-  // Toggle Filters
-  const [onlyVerified, setOnlyVerified] = useState(false)
-  const [onlyPro, setOnlyPro] = useState(false)
-  const [onlyInternship, setOnlyInternship] = useState(false)
+  const router = useRouter();
+  const pathname = usePathname();
 
-  useEffect(() => {
+  const initialSearch = searchParams?.get('search') || '';
+  const initialCategory = searchParams?.get('category') || '';
+  const initialCountry = searchParams?.get('country') || '';
+  const initialVerified = searchParams?.get('verified') === 'true';
+  const initialPro = searchParams?.get('pro') === 'true';
+  const initialInternship = searchParams?.get('internship') === 'true';
+  const initialLimit = parseInt(searchParams?.get('limit') || '12', 10);
+  
+  const [providers, setProviders] = useState<any[]>([]);
+  const [countries, setCountries] = useState<string[]>([]);
+  
+  const [search, setSearch] = useState(initialSearch);
+  const [category, setCategory] = useState(initialCategory);
+  const [country, setCountry] = useState(initialCountry);
+  const [onlyVerified, setOnlyVerified] = useState(initialVerified);
+  const [onlyPro, setOnlyPro] = useState(initialPro);
+  const [onlyInternship, setOnlyInternship] = useState(initialInternship);
+  const [visibleCount, setVisibleCount] = useState(initialLimit);
+
+  // Helper to update URL search parameters dynamically
+  const updateUrlParams = (updates: Record<string, string | null>) => {
+    const params = new URLSearchParams(searchParams?.toString() || '');
+    
+    Object.entries(updates).forEach(([key, value]) => {
+      if (!value || value === 'false' || value === '12') {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+    });
+
+    startTransition(() => {
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    });
+  };
+
+  // Continuously save scroll position as the user scrolls
+  useLayoutEffect(() => {
+    const handleScroll = () => {
+      sessionStorage.setItem('providers_scroll_pos', window.scrollY.toString());
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useLayoutEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+
     const fetchCountries = async () => {
       const { data } = await supabase.from('providers').select('country').not('country', 'is', null).neq('country', '')
       const uniqueCountries = Array.from(new Set(data?.map((p: any) => p.country.trim()).filter(Boolean)))
       setCountries(uniqueCountries.sort())
     }
     fetchCountries()
-  }, [])
+  }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const fetchProviders = async () => {
       let query = supabase.from('providers').select('*').eq('is_approved', true)
       
@@ -74,13 +112,70 @@ function ProvidersContent() {
           return Math.random() - 0.5
         })
         setProviders(sortedData)
-        setVisibleCount(12)
       } else {
         setProviders([])
       }
     }
     fetchProviders()
-  }, [search, category, country, onlyVerified, onlyPro, onlyInternship])
+  }, [search, category, country, onlyVerified, onlyPro, onlyInternship]);
+
+  // Synchronously restore scroll position as soon as providers are rendered
+  useLayoutEffect(() => {
+    if (providers.length > 0) {
+      const savedScroll = sessionStorage.getItem('providers_scroll_pos');
+      if (savedScroll) {
+        const yPos = parseInt(savedScroll, 10);
+        if (window.scrollY !== yPos) {
+          window.scrollTo(0, yPos);
+        }
+      }
+    }
+  }, [providers, visibleCount]);
+
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
+    setVisibleCount(12);
+    updateUrlParams({ search: val, limit: '12' });
+  };
+
+  const handleCategoryChange = (val: string) => {
+    setCategory(val);
+    setVisibleCount(12);
+    updateUrlParams({ category: val, limit: '12' });
+  };
+
+  const handleCountryChange = (val: string) => {
+    setCountry(val);
+    setVisibleCount(12);
+    updateUrlParams({ country: val, limit: '12' });
+  };
+
+  const toggleVerified = () => {
+    const nextVal = !onlyVerified;
+    setOnlyVerified(nextVal);
+    setVisibleCount(12);
+    updateUrlParams({ verified: nextVal ? 'true' : null, limit: '12' });
+  };
+
+  const togglePro = () => {
+    const nextVal = !onlyPro;
+    setOnlyPro(nextVal);
+    setVisibleCount(12);
+    updateUrlParams({ pro: nextVal ? 'true' : null, limit: '12' });
+  };
+
+  const toggleInternship = () => {
+    const nextVal = !onlyInternship;
+    setOnlyInternship(nextVal);
+    setVisibleCount(12);
+    updateUrlParams({ internship: nextVal ? 'true' : null, limit: '12' });
+  };
+
+  const handleViewMore = () => {
+    const nextCount = visibleCount + 12;
+    setVisibleCount(nextCount);
+    updateUrlParams({ limit: nextCount.toString() });
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-10 py-10 sm:py-32">
@@ -95,41 +190,41 @@ function ProvidersContent() {
         Search trusted professionals across every field. Filter by category, skills, country, or badges.
       </p>
 
-      {/* Search and Dropdowns: Compact 2-column on mobile, 3-column on desktop */}
+      {/* Search and Dropdowns */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
         <input 
           type="text" 
           placeholder="Search name or skill..." 
           className="form-input text-xs sm:text-base py-2 col-span-2 md:col-span-1" 
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
         />
-        <select className="form-input text-xs sm:text-base py-2" value={category} onChange={(e) => setCategory(e.target.value)}>
+        <select className="form-input text-xs sm:text-base py-2" value={category} onChange={(e) => handleCategoryChange(e.target.value)}>
           <option value="">All categories</option>
           {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
         </select>
-        <select className="form-input text-xs sm:text-base py-2" value={country} onChange={(e) => setCountry(e.target.value)}>
+        <select className="form-input text-xs sm:text-base py-2" value={country} onChange={(e) => handleCountryChange(e.target.value)}>
           <option value="">All countries</option>
           {countries.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
       </div>
 
-      {/* Toggle Badges: Inline wrapping row so they don't stack awkwardly */}
+      {/* Toggle Badges */}
       <div className="flex flex-row flex-wrap items-center gap-1.5 mb-6 border-b border-black/5 pb-3">
         <button 
-          onClick={() => setOnlyVerified(!onlyVerified)}
+          onClick={toggleVerified}
           className={`px-3 py-1.5 rounded-full text-[11px] sm:text-sm font-medium transition flex items-center gap-1 whitespace-nowrap ${onlyVerified ? 'bg-blue-500 text-white' : 'bg-paper border border-black/5 text-muted hover:text-ink'}`}
         >
           <i className="fas fa-check-circle"></i> Verified Only
         </button>
         <button 
-          onClick={() => setOnlyPro(!onlyPro)}
+          onClick={togglePro}
           className={`px-3 py-1.5 rounded-full text-[11px] sm:text-sm font-medium transition flex items-center gap-1 whitespace-nowrap ${onlyPro ? 'bg-accent text-white' : 'bg-paper border border-black/5 text-muted hover:text-ink'}`}
         >
           <i className="fas fa-crown"></i> Pro Members
         </button>
         <button 
-          onClick={() => setOnlyInternship(!onlyInternship)}
+          onClick={toggleInternship}
           className={`px-3 py-1.5 rounded-full text-[11px] sm:text-sm font-medium transition flex items-center gap-1 whitespace-nowrap ${onlyInternship ? 'bg-green-600 text-white' : 'bg-paper border border-black/5 text-muted hover:text-ink'}`}
         >
           <i className="fas fa-shield-halved"></i> Internship Ready
@@ -149,7 +244,7 @@ function ProvidersContent() {
           {providers.length > visibleCount && (
             <div className="text-center mt-8">
               <button 
-                onClick={() => setVisibleCount(visibleCount + 12)} 
+                onClick={handleViewMore} 
                 className="btn-secondary !py-2.5 !px-6 text-xs sm:text-base"
               >
                 View More Providers <i className="fas fa-arrow-down ml-2 text-xs"></i>
